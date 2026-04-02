@@ -1,0 +1,49 @@
+name: Lighthouse and Accessibility Audit
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          cd web
+          npm ci
+
+      - name: Build app
+        run: |
+          cd web
+          npm run build
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Start server
+        run: |
+          cd web
+          npx serve -s dist &
+          sleep 5
+
+      - name: Run Lighthouse CI
+        run: |
+          lhci autorun --collect.url=http://localhost:3000
+
+      - name: Install pa11y
+        run: npm install -g pa11y
+
+      - name: Run pa11y accessibility check
+        run: |
+          pa11y http://localhost:3000

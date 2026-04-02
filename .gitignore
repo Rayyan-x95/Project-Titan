@@ -1,0 +1,17 @@
+# Workspace
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+*.log
+
+# Web app
+/node_modules/
+/web/node_modules/
+/web/dist/
+/web/dist-ssr/
+/web/*.local
+
+# Local secrets
+/project-titan-768c9-firebase-adminsdk-fbsvc-51fd5c65fc.json

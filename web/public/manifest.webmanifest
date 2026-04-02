@@ -1,0 +1,65 @@
+{
+  "id": "/",
+  "name": "Titan Vault",
+  "short_name": "Titan",
+  "description": "Titan is an installable finance workspace for shared expenses, cash flow, EMI planning, rent cycles, and ambient insights.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070b14",
+  "theme_color": "#0a0e19",
+  "lang": "en-IN",
+  "categories": ["finance", "productivity", "utilities"],
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/screenshot1.png",
+      "sizes": "540x960",
+      "type": "image/png"
+    },
+    {
+      "src": "/screenshot2.png",
+      "sizes": "540x960",
+      "type": "image/png"
+    }
+  ],
+  "related_applications": [],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add split",
+      "short_name": "Split",
+      "description": "Open the new expense form.",
+      "url": "/expense/new"
+    },
+    {
+      "name": "Groups",
+      "short_name": "Groups",
+      "description": "Jump to shared groups and settlements.",
+      "url": "/groups"
+    },
+    {
+      "name": "Insights",
+      "short_name": "Insights",
+      "description": "Review financial health, patterns, and triggers.",
+      "url": "/insights"
+    }
+  ]
+}

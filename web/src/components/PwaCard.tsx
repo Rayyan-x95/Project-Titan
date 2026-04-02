@@ -1,0 +1,201 @@
+import { useEffect, useState } from 'react'
+
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
+}
+
+const OFFLINE_READY_TIMEOUT_MS = 4200
+
+export function PwaCard() {
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
+    null,
+  )
+  const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
+  const [offlineReady, setOfflineReady] = useState(false)
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine)
+  const [isStandalone, setIsStandalone] = useState(() =>
+    window.matchMedia('(display-mode: standalone)').matches,
+  )
+
+  useEffect(() => {
+    const standaloneMedia = window.matchMedia('(display-mode: standalone)')
+
+    const handleOnlineStatusChange = () => setIsOnline(navigator.onLine)
+    const handleStandaloneChange = (event: MediaQueryListEvent) =>
+      setIsStandalone(event.matches)
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault()
+      setDeferredPrompt(event as BeforeInstallPromptEvent)
+    }
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null)
+      setIsStandalone(true)
+    }
+
+    window.addEventListener('online', handleOnlineStatusChange)
+    window.addEventListener('offline', handleOnlineStatusChange)
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
+    standaloneMedia.addEventListener('change', handleStandaloneChange)
+
+    return () => {
+      window.removeEventListener('online', handleOnlineStatusChange)
+      window.removeEventListener('offline', handleOnlineStatusChange)
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+      standaloneMedia.removeEventListener('change', handleStandaloneChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!import.meta.env.PROD || !('serviceWorker' in navigator)) {
+      return
+    }
+
+    let isMounted = true
+    let offlineReadyTimer: number | undefined
+    let reloading = false
+
+    const handleControllerChange = () => {
+      if (reloading) {
+        return
+      }
+
+      reloading = true
+      window.location.reload()
+    }
+
+    const registerServiceWorker = async () => {
+      const registration = await navigator.serviceWorker.register('/sw.js')
+
+      const trackWorker = (worker: ServiceWorker | null) => {
+        if (!worker) {
+          return
+        }
+
+        worker.addEventListener('statechange', () => {
+          if (!isMounted || worker.state !== 'installed') {
+            return
+          }
+
+          if (navigator.serviceWorker.controller) {
+            setWaitingWorker(worker)
+            return
+          }
+
+          setOfflineReady(true)
+          offlineReadyTimer = window.setTimeout(() => {
+            if (isMounted) {
+              setOfflineReady(false)
+            }
+          }, OFFLINE_READY_TIMEOUT_MS)
+        })
+      }
+
+      if (registration.waiting) {
+        setWaitingWorker(registration.waiting)
+      }
+
+      trackWorker(registration.installing)
+      registration.addEventListener('updatefound', () => {
+        trackWorker(registration.installing)
+      })
+    }
+
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange)
+    void registerServiceWorker()
+
+    return () => {
+      isMounted = false
+      if (offlineReadyTimer) {
+        window.clearTimeout(offlineReadyTimer)
+      }
+      navigator.serviceWorker.removeEventListener(
+        'controllerchange',
+        handleControllerChange,
+      )
+    }
+  }, [])
+
+  if (!import.meta.env.PROD) {
+    return null
+  }
+
+  const showInstallAction = Boolean(deferredPrompt) && !isStandalone
+  const showUpdateAction = Boolean(waitingWorker)
+
+  async function handleInstall() {
+    if (!deferredPrompt) {
+      return
+    }
+
+    await deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null)
+    }
+  }
+
+  function handleUpdate() {
+    waitingWorker?.postMessage({ type: 'SKIP_WAITING' })
+  }
+
+  return (
+    <section className="sidebar-panel pwa-card" aria-live="polite">
+      <div className="pwa-card-head">
+        <p className="eyebrow">PWA mode</p>
+        <span
+          className={`pwa-pill ${
+            isOnline ? 'pwa-pill-online' : 'pwa-pill-offline'
+          }`}
+        >
+          {isOnline ? 'Online' : 'Offline'}
+        </span>
+      </div>
+
+      <h3>
+        {showUpdateAction
+          ? 'Update ready'
+          : offlineReady
+            ? 'Offline-ready shell'
+            : isStandalone
+              ? 'Installed app mode'
+              : 'Install Titan'}
+      </h3>
+
+      <p className="brand-copy">
+        {showUpdateAction
+          ? 'A fresher build is waiting. Reload into the latest cached shell when you are ready.'
+          : offlineReady
+            ? 'Titan has cached its core shell so your saved ledger keeps opening even when your connection drops.'
+            : isStandalone
+              ? 'Titan is running like an app and will reuse cached screens after the first successful load.'
+              : 'Add Titan to your home screen for a standalone finance workspace with faster relaunches and offline access after first load.'}
+      </p>
+
+      <div className="button-row">
+        {showInstallAction ? (
+          <button className="button button-primary" onClick={handleInstall} type="button">
+            Install app
+          </button>
+        ) : null}
+
+        {showUpdateAction ? (
+          <button className="button button-primary" onClick={handleUpdate} type="button">
+            Refresh app
+          </button>
+        ) : null}
+
+        {!showInstallAction && !showUpdateAction ? (
+          <span className="pwa-note">
+            {isStandalone
+              ? 'Standalone launch is active.'
+              : 'If install is unavailable, use your browser menu and choose Install or Add to Home Screen.'}
+          </span>
+        ) : null}
+      </div>
+    </section>
+  )
+}
