@@ -8,15 +8,28 @@ const STORES = ['state'] as const
 // Promise wrapper for IndexedDB operations
 export class TitanDB {
   private db: IDBDatabase | null = null
-  private readyPromise: Promise<void>
+  private readyPromise: Promise<void> | null = null
 
   constructor() {
+    this.readyPromise = null
+  }
+
+  private init(): Promise<void> {
+    if (this.readyPromise) {
+      return this.readyPromise
+    }
+
+    if (typeof indexedDB === 'undefined') {
+      this.readyPromise = Promise.resolve()
+      return this.readyPromise
+    }
+
     this.readyPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION)
 
       request.onupgradeneeded = () => {
         const db = request.result
-        STORES.forEach(storeName => {
+        STORES.forEach((storeName) => {
           if (!db.objectStoreNames.contains(storeName)) {
             db.createObjectStore(storeName)
           }
@@ -32,15 +45,21 @@ export class TitanDB {
         reject(request.error)
       }
     })
+
+    return this.readyPromise
   }
 
   private async ensureReady(): Promise<IDBDatabase> {
-    await this.readyPromise
+    await this.init()
     if (!this.db) throw new Error('Database not initialized')
     return this.db
   }
 
   async saveState(state: TitanState): Promise<void> {
+    if (typeof indexedDB === 'undefined') {
+      return
+    }
+
     const db = await this.ensureReady()
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['state'], 'readwrite')
@@ -54,6 +73,10 @@ export class TitanDB {
   }
 
   async loadState(): Promise<TitanState | null> {
+    if (typeof indexedDB === 'undefined') {
+      return null
+    }
+
     const db = await this.ensureReady()
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['state'], 'readonly')
@@ -69,6 +92,10 @@ export class TitanDB {
   }
 
   async clearState(): Promise<void> {
+    if (typeof indexedDB === 'undefined') {
+      return
+    }
+
     const db = await this.ensureReady()
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['state'], 'readwrite')

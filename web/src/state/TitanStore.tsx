@@ -18,6 +18,14 @@ import { TitanContext, type TitanContextValue } from './titan-context'
 
 const STORAGE_KEY = 'titan-web-state-v2'
 
+function getLocalStorage() {
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
+}
+
 type AddSplitPayload = {
   amountPaise: number
   description: string
@@ -95,7 +103,8 @@ function normalizeState(state: TitanState) {
 }
 
 function getInitialState() {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const storage = getLocalStorage()
+  const saved = storage?.getItem(STORAGE_KEY)
   if (!saved) {
     return emptyState;
   }
@@ -348,7 +357,8 @@ export function TitanProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Save to both localStorage (fallback) and IndexedDB (primary)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    const storage = getLocalStorage()
+    storage?.setItem(STORAGE_KEY, JSON.stringify(state))
 
     let canceled = false
 

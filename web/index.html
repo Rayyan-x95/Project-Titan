@@ -14,10 +14,38 @@
       name="description"
       content="Titan Web: split expenses, groups, cash, EMI, rent, and insights in a React workspace."
     />
+    <style>
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: #070b14;
+        color: #eef2ff;
+        font-family: 'Manrope', sans-serif;
+      }
+
+      #root {
+        min-height: 100vh;
+      }
+
+      .boot-screen {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        text-align: center;
+        letter-spacing: 0.02em;
+      }
+    </style>
     <title>Titan Web</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot-screen">Loading Titan...</div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

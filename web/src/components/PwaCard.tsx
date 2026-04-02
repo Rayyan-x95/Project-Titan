@@ -7,18 +7,30 @@ type BeforeInstallPromptEvent = Event & {
 
 const OFFLINE_READY_TIMEOUT_MS = 4200
 
+function getNavigatorOnLine() {
+  return typeof navigator !== 'undefined' ? navigator.onLine : true
+}
+
+function getStandaloneMatch() {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(display-mode: standalone)').matches
+    : false
+}
+
 export function PwaCard() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
     null,
   )
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
   const [offlineReady, setOfflineReady] = useState(false)
-  const [isOnline, setIsOnline] = useState(() => navigator.onLine)
-  const [isStandalone, setIsStandalone] = useState(() =>
-    window.matchMedia('(display-mode: standalone)').matches,
-  )
+  const [isOnline, setIsOnline] = useState(getNavigatorOnLine)
+  const [isStandalone, setIsStandalone] = useState(getStandaloneMatch)
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return
+    }
+
     const standaloneMedia = window.matchMedia('(display-mode: standalone)')
 
     const handleOnlineStatusChange = () => setIsOnline(navigator.onLine)
@@ -49,7 +61,11 @@ export function PwaCard() {
   }, [])
 
   useEffect(() => {
-    if (!import.meta.env.PROD || !('serviceWorker' in navigator)) {
+    if (
+      typeof navigator === 'undefined' ||
+      !import.meta.env.PROD ||
+      !('serviceWorker' in navigator)
+    ) {
       return
     }
 

@@ -106,6 +106,9 @@ button {
 }
 
 .sidebar-top {
+.boot-screen-error {
+  white-space: pre-wrap;
+}
   display: contents;
 }
 
