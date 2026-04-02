@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import {
   formatPaise,
@@ -8,9 +8,10 @@ import {
 import { useTitan } from '../state/useTitan'
 
 export function GroupDetailPage() {
+  const navigate = useNavigate()
   const params = useParams()
   const groupId = params.groupId ?? ''
-  const { state } = useTitan()
+  const { state, deleteGroup } = useTitan()
   const group = state.groups.find((item) => item.id === groupId)
 
   if (!group) {
@@ -36,9 +37,24 @@ export function GroupDetailPage() {
         title={group.name}
         description={`${group.members.length} members. Use the roadmap below to reduce the number of manual settlements.`}
         action={
-          <Link className="button button-primary" to={`/expense/new?group=${group.id}`}>
-            Add group expense
-          </Link>
+          <div className="button-row">
+            <Link className="button button-secondary" to={`/groups/new?edit=${group.id}`}>
+              Edit group
+            </Link>
+            <Link className="button button-primary" to={`/expense/new?group=${group.id}`}>
+              Add group expense
+            </Link>
+            <button
+              className="button button-ghost"
+              onClick={() => {
+                deleteGroup(group.id)
+                navigate('/groups')
+              }}
+              type="button"
+            >
+              Delete group
+            </button>
+          </div>
         }
       />
 

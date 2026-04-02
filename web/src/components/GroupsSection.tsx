@@ -1,6 +1,5 @@
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
-import { findGroup } from '../lib/finance'
 import type { TitanState } from '../types'
 
 export const GroupsSection = memo(({ state, hasActivity }: { 
@@ -26,7 +25,7 @@ export const GroupsSection = memo(({ state, hasActivity }: {
               <strong>{group.name}</strong>
               <span>{group.members.length} members in this circle</span>
             </div>
-            <strong>{findGroup(state.groups, group.id)?.members.length}</strong>
+            <strong>{group.members.length}</strong>
           </Link>
         ))}
         {state.groups.length === 0 ? (

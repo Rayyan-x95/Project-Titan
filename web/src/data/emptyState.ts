@@ -7,4 +7,6 @@ export const emptyState: TitanState = {
   transactions: [],
   cashEntries: [],
   emis: [],
+  notifications: [],
+  rentSchedules: [],
 }

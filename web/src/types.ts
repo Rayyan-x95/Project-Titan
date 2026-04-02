@@ -18,6 +18,7 @@ export type Group = {
   name: string
   members: string[]
   createdAt: number
+  updatedAt?: number
 }
 
 export type Transaction = {
@@ -27,6 +28,7 @@ export type Transaction = {
   type: string
   timestamp: number
   isApproved: boolean
+  source?: 'manual' | 'sms-simulated' | 'imported'
 }
 
 export type CashEntry = {
@@ -34,6 +36,7 @@ export type CashEntry = {
   amountRupees: number
   type: 'IN' | 'OUT'
   createdAt: number
+  label?: string
 }
 
 export type Emi = {
@@ -42,6 +45,30 @@ export type Emi = {
   amountRupees: number
   dueDate: number
   isActive: boolean
+  updatedAt?: number
+}
+
+export type NotificationEntry = {
+  id: string
+  title: string
+  message: string
+  kind: 'info' | 'success' | 'warning'
+  createdAt: number
+  read: boolean
+  href?: string
+}
+
+export type RentSchedule = {
+  id: string
+  paidBy: string
+  amountPaise: number
+  members: string[]
+  recurring: boolean
+  intervalDays: number
+  nextRunAt: number
+  description: string
+  createdAt: number
+  active: boolean
 }
 
 export type TitanState = {
@@ -51,6 +78,8 @@ export type TitanState = {
   transactions: Transaction[]
   cashEntries: CashEntry[]
   emis: Emi[]
+  notifications: NotificationEntry[]
+  rentSchedules: RentSchedule[]
 }
 
 export type PersonBalance = {

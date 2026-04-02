@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react'
-import { formatPaise } from '../lib/finance'
+import { formatDate, formatPaise } from '../lib/finance'
 import type { TitanState } from '../types'
 import { 
   getPersonBalances, 
@@ -26,7 +26,9 @@ export const NetBalanceSection = memo(({ state }: { state: TitanState }) => {
   }, [balances, hasCurrentUser])
   
   const summary = useMemo(() => {
-    return hasCurrentUser ? getSummaryInsights(state.splits, state.currentUser) : { totalPendingAmountPaise: 0, peopleWhoOweCount: 0 }
+    return hasCurrentUser
+      ? getSummaryInsights(state.splits, state.currentUser)
+      : { totalPendingAmountPaise: 0, peopleWhoOweCount: 0, oldestPendingSplit: undefined }
   }, [state.splits, state.currentUser, hasCurrentUser])
   
   const payFirst = useMemo(() => {
@@ -39,8 +41,10 @@ export const NetBalanceSection = memo(({ state }: { state: TitanState }) => {
         <p className="eyebrow">Net balance</p>
         <h2 className="display-value">{formatPaise(totalOwedPaise - totalOwePaise)}</h2>
         <p className="hero-copy">
-          {summary.peopleWhoOweCount} people still owe you. Your oldest open split
-          started recently.
+          {summary.peopleWhoOweCount} people still owe you.
+          {summary.oldestPendingSplit
+            ? ` Oldest open split: ${formatDate(summary.oldestPendingSplit.createdAt)}.`
+            : ' No open split is pending right now.'}
         </p>
 
         <div className="metric-grid">

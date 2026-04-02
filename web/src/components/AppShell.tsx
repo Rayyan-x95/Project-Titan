@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom'
-// Removed motion
+import { PwaCard } from './PwaCard'
 
 const navItems = [
   { path: '/', label: 'HOME' },
@@ -15,6 +15,7 @@ export default function AppShell() {
       <div className="ambient-light-2" />
       <main className="screen-content">
         <Outlet />
+        <PwaCard />
       </main>
       <nav className="floating-nav glass-surface-3">
         {navItems.map((item) => (

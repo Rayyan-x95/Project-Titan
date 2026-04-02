@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
+import { formatDate, formatRupees } from '../lib/finance'
 import { useTitan } from '../state/useTitan'
 
 export function RentPage() {
@@ -83,6 +84,33 @@ export function RentPage() {
           >
             Trigger rent split
           </button>
+        </div>
+      </section>
+
+      <section className="glass-panel">
+        <div className="panel-head">
+          <div>
+            <p className="eyebrow">Schedules</p>
+            <h3>Recurring rent cycles</h3>
+          </div>
+        </div>
+
+        <div className="list-block">
+          {state.rentSchedules.length === 0 ? (
+            <p className="muted-copy">No recurring schedules are active yet.</p>
+          ) : (
+            state.rentSchedules.map((schedule) => (
+              <article key={schedule.id} className="list-row list-row-static">
+                <div>
+                  <strong>{schedule.description}</strong>
+                  <span>
+                    {schedule.members.join(', ')} · Next run {formatDate(schedule.nextRunAt)}
+                  </span>
+                </div>
+                <strong>{formatRupees(schedule.amountPaise / 100)}</strong>
+              </article>
+            ))
+          )}
         </div>
       </section>
     </div>

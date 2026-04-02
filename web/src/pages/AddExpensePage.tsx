@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import {
@@ -28,11 +28,13 @@ function getDefaultParticipants(
 export function AddExpensePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { state, addSplit } = useTitan()
+  const { state, addSplit, updateSplit, deleteSplit } = useTitan()
   const hasCurrentUser = Boolean(state.currentUser)
   const defaultGroupId = searchParams.get('group') ?? ''
-  const availableGroups = state.groups.filter((group) =>
-    group.members.includes(state.currentUser),
+  const editSplitId = searchParams.get('edit') ?? ''
+  const editSplit = state.splits.find((split) => split.id === editSplitId)
+  const availableGroups = state.groups.filter(
+    (group) => group.members.includes(state.currentUser) || group.id === editSplit?.groupId,
   )
 
   const [amount, setAmount] = useState('')
@@ -52,6 +54,17 @@ export function AddExpensePage() {
     availableGroups,
   )
   const participants = manualParticipants ?? autoParticipants
+
+  useEffect(() => {
+    if (!editSplit) {
+      return
+    }
+
+    setAmount((editSplit.amountPaise / 100).toFixed(2))
+    setDescription(editSplit.description)
+    setGroupId(editSplit.groupId ?? '')
+    setManualParticipants(editSplit.participants.join(', '))
+  }, [editSplit])
 
   function setParticipants(value: string) {
     setManualParticipants(value === autoParticipants ? null : value)
@@ -74,12 +87,18 @@ export function AddExpensePage() {
       return
     }
 
-    addSplit({
+    const payload = {
       amountPaise,
       description: description || 'Untitled expense',
       participants: participantList,
       groupId: selectedGroup?.id,
-    })
+    }
+
+    if (editSplit) {
+      updateSplit({ splitId: editSplit.id, ...payload })
+    } else {
+      addSplit(payload)
+    }
 
     if (selectedGroup) {
       navigate(`/groups/${selectedGroup.id}`)
@@ -93,7 +112,7 @@ export function AddExpensePage() {
     <div className="page">
       <PageHeader
         eyebrow="New / Expense"
-        title="Split a fresh expense"
+        title={editSplit ? 'Edit split expense' : 'Split a fresh expense'}
         description="This ports the Android add-expense flow into a web form, with optional group targeting and a faster text-based participant list."
       />
 
@@ -185,8 +204,20 @@ export function AddExpensePage() {
           <button className="button button-secondary" onClick={() => navigate(-1)} type="button">
             Cancel
           </button>
+          {editSplit ? (
+            <button
+              className="button button-ghost"
+              onClick={() => {
+                deleteSplit(editSplit.id)
+                navigate('/history')
+              }}
+              type="button"
+            >
+              Delete split
+            </button>
+          ) : null}
           <button className="button button-primary" disabled={!hasCurrentUser} type="submit">
-            Save split
+            {editSplit ? 'Update split' : 'Save split'}
           </button>
         </div>
       </form>

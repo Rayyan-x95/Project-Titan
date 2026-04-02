@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { PageHeader } from '../components/PageHeader'
 import { formatDate, formatRupees } from '../lib/finance'
+import { parseSmsAlert } from '../services/sms'
 import { useTitan } from '../state/useTitan'
 
 export function SmsPage() {
-  const { state, approveTransaction, deleteTransaction } = useTitan()
+  const { state, approveTransaction, deleteTransaction, ingestTransaction } = useTitan()
   const pending = state.transactions.filter((transaction) => !transaction.isApproved)
+  const [message, setMessage] = useState('')
 
   return (
     <div className="page">
@@ -13,6 +16,41 @@ export function SmsPage() {
         title="Bank alert approval queue"
         description="Android SMS parsing becomes a web review queue here. Approvals still feed the spending insight logic, but the web version expects you to populate this queue with real data."
       />
+
+      <section className="glass-panel form-panel">
+        <label className="field field-wide">
+          <span>Simulate SMS alert</span>
+          <textarea
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder="Transaction alert: INR 240 spent at Metro Mart"
+            rows={4}
+            value={message}
+          />
+        </label>
+
+        <div className="button-row">
+          <button
+            className="button button-primary"
+            onClick={() => {
+              const parsed = parseSmsAlert(message)
+
+              if (!parsed) {
+                return
+              }
+
+              ingestTransaction({
+                merchant: parsed.merchant,
+                amountRupees: parsed.amountRupees,
+                type: 'SMS',
+              })
+              setMessage('')
+            }}
+            type="button"
+          >
+            Ingest alert
+          </button>
+        </div>
+      </section>
 
       <section className="glass-panel">
         <div className="list-block">

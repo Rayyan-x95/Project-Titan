@@ -1,52 +1,87 @@
-﻿import { motion } from 'framer-motion'
+﻿import { useState } from 'react'
 import { useTitan } from '../state/useTitan'
-import { formatRupees } from '../lib/finance'
+import { formatDate, formatRupees, getCashBalance } from '../lib/finance'
 
 export default function CashPage() {
-  const { state } = useTitan()
-  
-  // Calculate total cash balance
-  const totalBalance = state.cashEntries.reduce((acc, current) => {
-    return current.type === 'IN' ? acc + current.amountRupees : acc - current.amountRupees
-  }, 0)
+  const { state, addCashEntry } = useTitan()
+  const [amount, setAmount] = useState('')
+  const [entryType, setEntryType] = useState<'IN' | 'OUT'>('IN')
+  const totalBalance = getCashBalance(state.cashEntries)
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="flex-col gap-8"
-    >
-      <div className="metadata text-center" style={{ marginTop: '2rem', marginBottom: '1rem' }}>THE ARSENAL</div>
+    <div className="page">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">Cash / Arsenal</p>
+          <h1>Track in-hand flow</h1>
+          <p className="page-description">
+            Cash tracking now has a real input form so the vault balance is based on actual entries.
+          </p>
+        </div>
+      </header>
 
-      <div className="flex-col" style={{ perspective: 1000, marginTop: '2rem' }}>
-        <motion.div
-             initial={{ y: 50, scale: 0.9, opacity: 0 }}
-             animate={{ y: 0, scale: 1, opacity: 1 }}
-             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-             className="glass-surface-3 flex-col justify-between"
-             style={{ 
-               padding: '32px', 
-               height: '240px', 
-               position: 'relative',
-               zIndex: 10,
-               boxShadow: '0 -20px 60px rgba(0,0,0,0.4)',
-               backgroundImage: 'linear-gradient(135deg, rgba(175, 162, 255, 0.08) 0%, rgba(20, 25, 39, 0) 100%)',
-               borderTop: 'none'
-             }}
-           >
-             <div className="flex-row justify-between">
-               <div className="display-font" style={{ fontWeight: 800, fontSize: '1.5rem', color: 'var(--primary)' }}>
-                 TOTAL WEALTH
-               </div>
-             </div>
-             <div className="flex-col">
-               <div className="display-font" style={{ fontSize: '2.8rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                 {formatRupees(totalBalance)}
-               </div>
-             </div>
-           </motion.div>
-      </div>
-    </motion.div>
+      <section className="glass-panel">
+        <p className="eyebrow">Current balance</p>
+        <strong className="display-value">{formatRupees(totalBalance)}</strong>
+      </section>
+
+      <section className="glass-panel form-panel">
+        <label className="field">
+          <span>Amount</span>
+          <input inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="0" value={amount} />
+        </label>
+
+        <label className="field">
+          <span>Entry type</span>
+          <select onChange={(event) => setEntryType(event.target.value as 'IN' | 'OUT')} value={entryType}>
+            <option value="IN">Cash in</option>
+            <option value="OUT">Cash out</option>
+          </select>
+        </label>
+
+        <div className="button-row">
+          <button
+            className="button button-primary"
+            onClick={() => {
+              const parsedAmount = Number(amount)
+              if (Number.isFinite(parsedAmount) && parsedAmount > 0) {
+                addCashEntry(parsedAmount, entryType)
+                setAmount('')
+              }
+            }}
+            type="button"
+          >
+            Save cash entry
+          </button>
+        </div>
+      </section>
+
+      <section className="glass-panel">
+        <div className="panel-head">
+          <div>
+            <p className="eyebrow">History</p>
+            <h3>Cash movements</h3>
+          </div>
+        </div>
+
+        <div className="list-block">
+          {state.cashEntries.length === 0 ? (
+            <p className="muted-copy">No cash entries yet.</p>
+          ) : (
+            state.cashEntries.map((entry) => (
+              <article key={entry.id} className="list-row list-row-static">
+                <div>
+                  <strong>{entry.type === 'IN' ? 'Cash in' : 'Cash out'}</strong>
+                  <span>{formatDate(entry.createdAt)}</span>
+                </div>
+                <strong className={entry.type === 'IN' ? 'amount-positive' : 'amount-negative'}>
+                  {formatRupees(entry.amountRupees)}
+                </strong>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+    </div>
   )
 }

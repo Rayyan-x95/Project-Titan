@@ -1,13 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import { formatDate, formatRupees } from '../lib/finance'
 import { useTitan } from '../state/useTitan'
 
 export function EmiPage() {
-  const { state, addEmi } = useTitan()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { state, addEmi, updateEmi, deleteEmi } = useTitan()
+  const editEmiId = searchParams.get('edit') ?? ''
+  const editEmi = state.emis.find((emi) => emi.id === editEmiId)
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const MAX_AMOUNT_RUPEES = 10_000_000
+
+  useEffect(() => {
+    if (!editEmi) {
+      return
+    }
+
+    setName(editEmi.name)
+    setAmount(String(editEmi.amountRupees))
+  }, [editEmi])
 
   return (
     <div className="page">
@@ -43,14 +56,19 @@ export function EmiPage() {
             onClick={() => {
               const value = Number(amount)
               if (name.trim() && Number.isFinite(value) && value > 0 && value <= MAX_AMOUNT_RUPEES) {
-                addEmi(name.trim(), value)
+                if (editEmi) {
+                  updateEmi({ emiId: editEmi.id, name: name.trim(), amountRupees: value })
+                } else {
+                  addEmi(name.trim(), value)
+                }
                 setName('')
                 setAmount('')
+                setSearchParams({})
               }
             }}
             type="button"
           >
-            Add EMI
+            {editEmi ? 'Update EMI' : 'Add EMI'}
           </button>
         </div>
       </section>
@@ -63,7 +81,23 @@ export function EmiPage() {
                 <strong>{emi.name}</strong>
                 <span>Due {formatDate(emi.dueDate)}</span>
               </div>
-              <strong>{formatRupees(emi.amountRupees)}</strong>
+              <div className="row-actions">
+                <strong>{formatRupees(emi.amountRupees)}</strong>
+                <button
+                  className="button button-secondary button-small"
+                  onClick={() => setSearchParams({ edit: emi.id })}
+                  type="button"
+                >
+                  Edit
+                </button>
+                <button
+                  className="button button-ghost button-small"
+                  onClick={() => deleteEmi(emi.id)}
+                  type="button"
+                >
+                  Delete
+                </button>
+              </div>
             </article>
           ))}
         </div>
