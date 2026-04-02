@@ -1,4 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import AppShell from './components/AppShell'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { TitanProvider } from './state/TitanStore'
@@ -43,6 +45,8 @@ function App() {
               <Route element={<Navigate replace to="/" />} path="*" />
             </Route>
           </Routes>
+          <Analytics />
+          <SpeedInsights />
         </BrowserRouter>
       </TitanProvider>
     </ErrorBoundary>
