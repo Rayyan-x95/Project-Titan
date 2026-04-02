@@ -1,94 +1,52 @@
-import { useState } from 'react'
-import { PageHeader } from '../components/PageHeader'
-import { formatDate, formatRupees, getCashBalance } from '../lib/finance'
+﻿import { motion } from 'framer-motion'
 import { useTitan } from '../state/useTitan'
+import { formatRupees } from '../lib/finance'
 
-export function CashPage() {
-  const { state, addCashEntry } = useTitan()
-  const [amount, setAmount] = useState('')
-  const cashBalance = getCashBalance(state.cashEntries)
-  const MAX_AMOUNT_RUPEES = 10_000_000
-
-  function parseAmount(input: string) {
-    const value = Number(input)
-    if (!Number.isFinite(value) || value <= 0 || value > MAX_AMOUNT_RUPEES) {
-      return null
-    }
-    return value
-  }
+export default function CashPage() {
+  const { state } = useTitan()
+  
+  // Calculate total cash balance
+  const totalBalance = state.cashEntries.reduce((acc, current) => {
+    return current.type === 'IN' ? acc + current.amountRupees : acc - current.amountRupees
+  }, 0)
 
   return (
-    <div className="page">
-      <PageHeader
-        eyebrow="Cash / Balance"
-        title={formatRupees(cashBalance)}
-        description="Track in-hand money without leaving the main Titan workspace."
-      />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      className="flex-col gap-8"
+    >
+      <div className="metadata text-center" style={{ marginTop: '2rem', marginBottom: '1rem' }}>THE ARSENAL</div>
 
-      <section className="glass-panel form-panel">
-        <label className="field">
-          <span>Amount</span>
-          <input
-            inputMode="decimal"
-            onChange={(event) => setAmount(event.target.value)}
-            placeholder="0"
-            value={amount}
-          />
-        </label>
-
-        <div className="button-row">
-          <button
-            className="button button-secondary"
-            onClick={() => {
-              const value = parseAmount(amount)
-              if (value !== null) {
-                addCashEntry(value, 'IN')
-                setAmount('')
-              }
-            }}
-            type="button"
-          >
-            Cash in
-          </button>
-          <button
-            className="button button-primary"
-            onClick={() => {
-              const value = parseAmount(amount)
-              if (value !== null) {
-                addCashEntry(value, 'OUT')
-                setAmount('')
-              }
-            }}
-            type="button"
-          >
-            Cash out
-          </button>
-        </div>
-      </section>
-
-      <section className="glass-panel">
-        <div className="panel-head">
-          <div>
-            <p className="eyebrow">History</p>
-            <h3>Cash flow ledger</h3>
-          </div>
-        </div>
-
-        <div className="list-block">
-          {state.cashEntries.map((entry) => (
-            <article key={entry.id} className="list-row list-row-static">
-              <div>
-                <strong>{entry.type === 'IN' ? 'Cash received' : 'Cash spent'}</strong>
-                <span>{formatDate(entry.createdAt)}</span>
-              </div>
-              <strong className={entry.type === 'IN' ? 'amount-positive' : 'amount-negative'}>
-                {entry.type === 'IN' ? '+' : '-'}
-                {formatRupees(entry.amountRupees)}
-              </strong>
-            </article>
-          ))}
-        </div>
-      </section>
-    </div>
+      <div className="flex-col" style={{ perspective: 1000, marginTop: '2rem' }}>
+        <motion.div
+             initial={{ y: 50, scale: 0.9, opacity: 0 }}
+             animate={{ y: 0, scale: 1, opacity: 1 }}
+             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+             className="glass-surface-3 flex-col justify-between"
+             style={{ 
+               padding: '32px', 
+               height: '240px', 
+               position: 'relative',
+               zIndex: 10,
+               boxShadow: '0 -20px 60px rgba(0,0,0,0.4)',
+               backgroundImage: 'linear-gradient(135deg, rgba(175, 162, 255, 0.08) 0%, rgba(20, 25, 39, 0) 100%)',
+               borderTop: 'none'
+             }}
+           >
+             <div className="flex-row justify-between">
+               <div className="display-font" style={{ fontWeight: 800, fontSize: '1.5rem', color: 'var(--primary)' }}>
+                 TOTAL WEALTH
+               </div>
+             </div>
+             <div className="flex-col">
+               <div className="display-font" style={{ fontSize: '2.8rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                 {formatRupees(totalBalance)}
+               </div>
+             </div>
+           </motion.div>
+      </div>
+    </motion.div>
   )
 }

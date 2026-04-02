@@ -6,14 +6,14 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { TitanProvider } from './state/TitanStore'
 import { AddExpensePage } from './pages/AddExpensePage'
 import { AddGroupPage } from './pages/AddGroupPage'
-import { CashPage } from './pages/CashPage'
+import CashPage from './pages/CashPage'
 import { EmiPage } from './pages/EmiPage'
 import { GroupDetailPage } from './pages/GroupDetailPage'
 import { GroupsPage } from './pages/GroupsPage'
-import { HistoryPage } from './pages/HistoryPage'
+import HistoryPage from './pages/HistoryPage'
 import HomePage from './pages/HomePage'
 import { HealthPage, PatternsPage, TriggersPage } from './pages/InsightDetailPages'
-import { InsightsPage } from './pages/InsightsPage'
+import InsightsPage from './pages/InsightsPage'
 import { PersonPage } from './pages/PersonPage'
 import { RentPage } from './pages/RentPage'
 import { SettlementPage } from './pages/SettlementPage'
@@ -54,3 +54,4 @@ function App() {
 }
 
 export default App
+
