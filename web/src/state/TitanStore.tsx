@@ -462,7 +462,7 @@ function reducer(state: TitanState, action: Action): TitanState {
         type: action.entryType?.trim() || 'SMS',
         timestamp: Date.now(),
         isApproved: false,
-        source: 'sms-simulated' as const,
+        source: 'sms' as const,
       }
 
       return pushNotification(
@@ -607,7 +607,7 @@ function reducer(state: TitanState, action: Action): TitanState {
             ...state.rentSchedules,
           ],
         },
-        createNotification('Rent schedule registered', `Titan will simulate the next rent cycle in ${RENT_INTERVAL_DAYS} days.`, 'info', '/rent'),
+        createNotification('Rent schedule registered', `Next rent cycle is scheduled in ${RENT_INTERVAL_DAYS} days.`, 'info', '/rent'),
       )
     }
     case 'RUN_DUE_RENT_SCHEDULES': {
@@ -650,7 +650,7 @@ function reducer(state: TitanState, action: Action): TitanState {
           ...nextState,
           rentSchedules: nextSchedules,
         },
-        createNotification('Rent cycle simulated', 'A scheduled rent split was generated locally.', 'success', '/rent'),
+        createNotification('Rent cycle processed', 'A scheduled rent split has been generated.', 'success', '/rent'),
       )
     }
     default:

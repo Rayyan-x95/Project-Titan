@@ -11,35 +11,12 @@
   "lang": "en-IN",
   "categories": ["finance", "productivity", "utilities"],
   "prefer_related_applications": false,
-  "screenshots": [
-    {
-      "src": "/screenshot1.png",
-      "sizes": "540x960",
-      "type": "image/png"
-    },
-    {
-      "src": "/screenshot2.png",
-      "sizes": "540x960",
-      "type": "image/png"
-    }
-  ],
+  "screenshots": [],
   "related_applications": [],
   "icons": [
     {
-      "src": "/pwa-192x192.png",
-      "sizes": "192x192",
+      "src": "/titan_logo_icon_transparent.png",
       "type": "image/png"
-    },
-    {
-      "src": "/pwa-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/maskable-icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ],
   "shortcuts": [

@@ -13,6 +13,9 @@ export default function AppShell() {
     <div className="app-container">
       <div className="ambient-light-1" />
       <div className="ambient-light-2" />
+      <header className="shell-brand" aria-label="Titan app">
+        <img className="shell-brand-wordmark" src="/titan_logo_full_transparent.png" alt="Titan logo" />
+      </header>
       <main className="screen-content">
         <Outlet />
         <PwaCard />

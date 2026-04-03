@@ -1,13 +1,35 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
+import { TitanSegmentedControl } from '../components/TitanSegmentedControl'
 import {
   formatDate,
   formatPaise,
   formatRupees,
   getCashBalance,
 } from '../lib/finance'
+import { normalizeSearchText } from '../lib/input'
 import { useTitanActions, useTitanState } from '../state/useTitan'
+
+const HISTORY_QUERY_KEY = 'titan-history-query'
+const HISTORY_STATUS_KEY = 'titan-history-status'
+
+function getSavedQuery() {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+
+  return window.localStorage.getItem(HISTORY_QUERY_KEY) ?? ''
+}
+
+function getSavedStatus() {
+  if (typeof window === 'undefined') {
+    return 'all' as const
+  }
+
+  const savedStatus = window.localStorage.getItem(HISTORY_STATUS_KEY)
+  return savedStatus === 'approved' || savedStatus === 'pending' ? savedStatus : 'all'
+}
 
 function downloadFile(filename: string, contents: string, mimeType: string) {
   const blob = new Blob([contents], { type: mimeType })
@@ -27,19 +49,31 @@ export default function HistoryPage() {
   const navigate = useNavigate()
   const state = useTitanState()
   const { deleteSplit, approveTransaction, deleteTransaction } = useTitanActions()
-  const [query, setQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'pending'>('all')
+  const [query, setQuery] = useState(getSavedQuery)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'pending'>(getSavedStatus)
+
+  useEffect(() => {
+    window.localStorage.setItem(HISTORY_QUERY_KEY, query)
+  }, [query])
+
+  useEffect(() => {
+    window.localStorage.setItem(HISTORY_STATUS_KEY, statusFilter)
+  }, [statusFilter])
 
   const filteredTransactions = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase()
+    const normalizedQuery = normalizeSearchText(query)
 
     return [...state.transactions]
       .sort((left, right) => right.timestamp - left.timestamp)
       .filter((transaction) => {
+        const amountText = String(transaction.amountRupees)
+        const dateText = formatDate(transaction.timestamp).toLowerCase()
         const matchesQuery =
           normalizedQuery.length === 0 ||
           transaction.merchant.toLowerCase().includes(normalizedQuery) ||
-          transaction.type.toLowerCase().includes(normalizedQuery)
+          transaction.type.toLowerCase().includes(normalizedQuery) ||
+          amountText.includes(normalizedQuery) ||
+          dateText.includes(normalizedQuery)
         const matchesStatus =
           statusFilter === 'all' ||
           (statusFilter === 'approved' && transaction.isApproved) ||
@@ -144,17 +178,16 @@ export default function HistoryPage() {
           />
         </label>
 
-        <label className="field">
-          <span>Status</span>
-          <select
-            onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)}
-            value={statusFilter}
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-          </select>
-        </label>
+        <TitanSegmentedControl
+          label="Status"
+          options={[
+            { value: 'all', label: 'All' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'approved', label: 'Approved' },
+          ]}
+          onChange={(nextValue) => setStatusFilter(nextValue as typeof statusFilter)}
+          value={statusFilter}
+        />
       </section>
 
       <section className="glass-panel">

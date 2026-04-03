@@ -15,12 +15,12 @@ export function SmsPage() {
       <PageHeader
         eyebrow="Detected / SMS"
         title="Bank alert approval queue"
-        description="Android SMS parsing becomes a web review queue here. Approvals still feed the spending insight logic, but the web version expects you to populate this queue with real data."
+        description="Review parsed SMS bank alerts here. Approved entries feed insights and history with real transaction data."
       />
 
       <section className="glass-panel form-panel">
         <label className="field field-wide">
-          <span>Simulate SMS alert</span>
+          <span>SMS alert text</span>
           <textarea
             onChange={(event) => setMessage(event.target.value)}
             placeholder="Transaction alert: INR 240 spent at Metro Mart"

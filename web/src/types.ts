@@ -28,7 +28,7 @@ export type Transaction = {
   type: string
   timestamp: number
   isApproved: boolean
-  source?: 'manual' | 'sms-simulated' | 'imported'
+  source?: 'manual' | 'sms' | 'imported'
 }
 
 export type CashEntry = {

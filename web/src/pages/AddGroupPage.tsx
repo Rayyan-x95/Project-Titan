@@ -42,7 +42,7 @@ function GroupEditor({ createGroup, currentUser, editGroup, navigate, updateGrou
       <PageHeader
         eyebrow="New / Group"
         title={editGroup ? 'Edit shared group' : 'Create a shared group'}
-        description="Group setup is kept deliberately light: one name, a comma-separated member list, and immediate access to the settlement roadmap."
+        description="Set up a group quickly with a name and members, then jump straight to settlements."
       />
 
       <form

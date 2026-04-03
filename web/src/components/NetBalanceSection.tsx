@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { formatDate, formatPaise } from '../lib/finance'
 import type { TitanState } from '../types'
 import { 
@@ -11,6 +12,7 @@ import {
 
 export const NetBalanceSection = memo(({ state }: { state: TitanState }) => {
   const hasCurrentUser = Boolean(state.currentUser)
+  const hasWorkspaceData = state.groups.length > 0 || state.splits.length > 0
   
   // Memoize expensive computations
   const balances = useMemo(() => {
@@ -34,6 +36,34 @@ export const NetBalanceSection = memo(({ state }: { state: TitanState }) => {
   const payFirst = useMemo(() => {
     return hasCurrentUser ? getAlwaysPaysFirstPercentage(state.splits, state.currentUser) : 0
   }, [state.splits, state.currentUser, hasCurrentUser])
+
+  if (!hasCurrentUser && !hasWorkspaceData) {
+    return (
+      <section className="hero-grid onboarding-grid">
+        <article className="glass-panel hero-panel onboarding-welcome-panel">
+          <div className="onboarding-brand-pill" aria-label="Titan branding">
+            <img src="/titan_logo_icon_transparent.png" alt="Titan logo" />
+            <span>Titan</span>
+          </div>
+          <p className="eyebrow">Welcome back</p>
+          <h1 className="display-value onboarding-title">Split expenses, stay friends.</h1>
+        </article>
+
+        <article className="glass-panel hero-panel hero-panel-empty onboarding-empty-panel">
+          <div className="onboarding-illustration" aria-hidden="true">
+            <img src="/titan_logo_icon_transparent.png" alt="" />
+          </div>
+          <h3>No events yet</h3>
+          <p className="hero-copy">
+            Create an event to start splitting expenses with friends.
+          </p>
+          <Link className="button button-primary onboarding-cta" to="/groups/new">
+            Create First Event
+          </Link>
+        </article>
+      </section>
+    )
+  }
 
   return (
     <section className="hero-grid">

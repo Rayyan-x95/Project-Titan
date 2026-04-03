@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'titan-pwa-v3' // bump for new best practices
+const CACHE_VERSION = 'titan-pwa-v6' // bump after restoring PNG logo assets
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`
 const OFFLINE_FALLBACK_PAGE = '/index.html'
@@ -6,12 +6,8 @@ const APP_SHELL_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/favicon.svg',
-  '/icons.svg',
-  '/apple-touch-icon.png',
-  '/pwa-192x192.png',
-  '/pwa-512x512.png',
-  '/maskable-icon-512x512.png',
+  '/titan_logo_icon_transparent.png',
+  '/titan_logo_full_transparent.png',
 ]
 const FONT_ORIGINS = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com']
 

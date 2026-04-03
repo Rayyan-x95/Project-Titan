@@ -36,7 +36,7 @@ export function GroupDetailPage() {
       <PageHeader
         eyebrow="Group / Detail"
         title={group.name}
-        description={`${group.members.length} members. Use the roadmap below to reduce the number of manual settlements.`}
+        description={`${group.members.length} members. Use the roadmap below to minimize manual settlement steps.`}
         action={
           <div className="button-row">
             <Link className="button button-secondary" to={`/groups/new?edit=${group.id}`}>

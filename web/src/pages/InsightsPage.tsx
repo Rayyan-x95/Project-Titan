@@ -38,7 +38,7 @@ export default function InsightsPage() {
       <PageHeader
         eyebrow="Pulse / Insights"
         title="Live financial diagnostics"
-        description="This view now reflects the same data engine used by the rest of Titan, with no mocked burn rate or dummy score."
+        description="View real-time financial diagnostics powered by your actual Titan activity."
       />
 
       <section className="glass-panel insights-chart-panel">

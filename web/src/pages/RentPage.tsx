@@ -19,7 +19,7 @@ export function RentPage() {
       <PageHeader
         eyebrow="Rent / Monthly split"
         title="Trigger the next rent cycle"
-        description="The Android recurring-rent flow becomes a one-shot web action that can still seed the monthly split into the shared ledger."
+        description="Create the next rent split and optionally schedule it as a recurring monthly cycle."
       />
 
       <section className="glass-panel form-panel">

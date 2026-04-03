@@ -5,6 +5,7 @@ import { NetBalanceSection } from '../components/NetBalanceSection'
 import { PeopleSection } from '../components/PeopleSection'
 import { formatDate } from '../lib/finance'
 import { useTitanState } from '../state/useTitan'
+import { Link } from 'react-router-dom'
 
 export default function HomePage() {
   const state = useTitanState()
@@ -20,11 +21,31 @@ export default function HomePage() {
         <div className="panel-head">
           <div>
             <p className="eyebrow">Shortcuts</p>
-            <h3>Feature lock</h3>
+            <h3>Quick actions</h3>
           </div>
         </div>
         <div className="feature-grid">
           <FeatureGrid />
+        </div>
+      </section>
+
+      <section className="glass-panel">
+        <div className="panel-head">
+          <div>
+            <p className="eyebrow">Guides</p>
+            <h3>Discover Titan use cases</h3>
+          </div>
+        </div>
+        <div className="chip-row">
+          <Link className="chip chip-button" to="/expense-tracker-india">
+            Expense tracker India for daily spending
+          </Link>
+          <Link className="chip chip-button" to="/budget-app-for-students">
+            Budget app for students in India
+          </Link>
+          <Link className="chip chip-button" to="/split-expense-app-india">
+            Split expense app for friends in India
+          </Link>
         </div>
       </section>
 

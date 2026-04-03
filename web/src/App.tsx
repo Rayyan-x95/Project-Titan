@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import AppShell from './components/AppShell'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { GoogleAnalytics } from './components/GoogleAnalytics'
 import { TitanProvider } from './state/TitanStore'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -22,9 +23,17 @@ const InsightsPage = lazy(() => import('./pages/InsightsPage'))
 const PatternsPage = lazy(() => import('./pages/InsightDetailPages').then((module) => ({ default: module.PatternsPage })))
 const TriggersPage = lazy(() => import('./pages/InsightDetailPages').then((module) => ({ default: module.TriggersPage })))
 const HealthPage = lazy(() => import('./pages/InsightDetailPages').then((module) => ({ default: module.HealthPage })))
+const ExpenseTrackerIndiaPage = lazy(() => import('./pages/SeoLandingPages').then((module) => ({ default: module.ExpenseTrackerIndiaPage })))
+const BudgetAppForStudentsPage = lazy(() => import('./pages/SeoLandingPages').then((module) => ({ default: module.BudgetAppForStudentsPage })))
+const SplitExpenseAppIndiaPage = lazy(() => import('./pages/SeoLandingPages').then((module) => ({ default: module.SplitExpenseAppIndiaPage })))
 
 function RouteFallback() {
-  return <div className="boot-screen">Loading Titan...</div>
+  return (
+    <div className="boot-screen" role="status" aria-live="polite">
+      <img className="boot-logo" src="/titan_logo_icon_transparent.png" alt="Titan logo" />
+      <span>Loading Titan...</span>
+    </div>
+  )
 }
 
 function App() {
@@ -57,9 +66,13 @@ function App() {
               <Route element={<PatternsPage />} path="insights/patterns" />
               <Route element={<TriggersPage />} path="insights/triggers" />
               <Route element={<HealthPage />} path="insights/health" />
+              <Route element={<ExpenseTrackerIndiaPage />} path="expense-tracker-india" />
+              <Route element={<BudgetAppForStudentsPage />} path="budget-app-for-students" />
+              <Route element={<SplitExpenseAppIndiaPage />} path="split-expense-app-india" />
               <Route element={<Navigate replace to="/" />} path="*" />
             </Route>
           </Routes>
+          <GoogleAnalytics />
           <Analytics />
           <SpeedInsights />
         </BrowserRouter>

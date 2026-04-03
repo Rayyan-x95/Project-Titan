@@ -6,23 +6,23 @@ export const FeatureGrid = memo(() => {
     <>
       <Link className="feature-tile" to="/sms">
         <span>SMS</span>
-        <strong>Review detected alerts</strong>
+        <strong>Track UPI spending alerts</strong>
       </Link>
       <Link className="feature-tile" to="/cash">
         <span>Cash</span>
-        <strong>Track in-hand flow</strong>
+        <strong>Track your daily expenses</strong>
       </Link>
       <Link className="feature-tile" to="/emis">
         <span>EMI</span>
-        <strong>Watch monthly load</strong>
+        <strong>Manage monthly budget load</strong>
       </Link>
       <Link className="feature-tile" to="/rent">
         <span>Rent</span>
-        <strong>Trigger monthly cycles</strong>
+        <strong>Plan shared monthly expenses</strong>
       </Link>
       <Link className="feature-tile" to="/groups">
         <span>Groups</span>
-        <strong>Balance shared spaces</strong>
+        <strong>Split expenses with friends</strong>
       </Link>
     </>
   )

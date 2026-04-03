@@ -8,10 +8,42 @@ export default defineConfig({
     dedupe: ['react', 'react-dom']
   },
   build: {
+    target: 'es2020',
+    cssCodeSplit: true,
+    modulePreload: {
+      polyfill: false
+    },
+    chunkSizeWarningLimit: 900,
     // Workaround for Rolldown / Vite 8 CJS/ESM interop on Vercel packages
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true
+    },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return undefined
+          }
+
+          if (
+            id.includes('react/') ||
+            id.includes('react-dom/') ||
+            id.includes('react-router-dom/')
+          ) {
+            return 'react'
+          }
+
+          if (
+            id.includes('@vercel/analytics') ||
+            id.includes('@vercel/speed-insights')
+          ) {
+            return 'analytics'
+          }
+
+          return 'vendor'
+        }
+      }
     }
   }
 })

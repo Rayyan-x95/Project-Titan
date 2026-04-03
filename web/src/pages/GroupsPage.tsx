@@ -11,7 +11,7 @@ export function GroupsPage() {
       <PageHeader
         eyebrow="Financial / Groups"
         title="Shared circles"
-        description="Group expenses are preserved as dedicated routes, with a web-friendly settlement roadmap and a lighter editing flow."
+        description="Manage shared expense groups and settle balances with a clear payment roadmap."
         action={
           <button
             className="button button-primary"

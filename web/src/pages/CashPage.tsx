@@ -1,6 +1,8 @@
 ﻿import { useState } from 'react'
+import { TitanSegmentedControl } from '../components/TitanSegmentedControl'
 import { useTitanActions, useTitanState } from '../state/useTitan'
 import { formatDate, formatRupees, getCashBalance } from '../lib/finance'
+import { parseAmountInput } from '../lib/input'
 
 export default function CashPage() {
   const state = useTitanState()
@@ -32,20 +34,22 @@ export default function CashPage() {
           <input inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="0" value={amount} />
         </label>
 
-        <label className="field">
-          <span>Entry type</span>
-          <select onChange={(event) => setEntryType(event.target.value as 'IN' | 'OUT')} value={entryType}>
-            <option value="IN">Cash in</option>
-            <option value="OUT">Cash out</option>
-          </select>
-        </label>
+        <TitanSegmentedControl
+          label="Entry type"
+          options={[
+            { value: 'IN', label: 'Cash in' },
+            { value: 'OUT', label: 'Cash out' },
+          ]}
+          onChange={(nextValue) => setEntryType(nextValue as 'IN' | 'OUT')}
+          value={entryType}
+        />
 
         <div className="button-row">
           <button
             className="button button-primary"
             onClick={() => {
-              const parsedAmount = Number(amount)
-              if (Number.isFinite(parsedAmount) && parsedAmount > 0) {
+              const parsedAmount = parseAmountInput(amount)
+              if (parsedAmount !== null && parsedAmount > 0) {
                 addCashEntry(parsedAmount, entryType)
                 setAmount('')
               }

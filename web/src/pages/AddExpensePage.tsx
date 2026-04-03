@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { TitanDropdown } from '../components/TitanDropdown'
+import { TitanSwitch } from '../components/TitanSwitch'
 import { PageHeader } from '../components/PageHeader'
 import {
   findGroup,
   getKnownPeople,
   sanitizeParticipantList,
 } from '../lib/finance'
+import { parseAmountInput } from '../lib/input'
 import type { TitanState } from '../types'
 import { useTitanActions, useTitanState } from '../state/useTitan'
 
@@ -100,6 +103,7 @@ function ExpenseEditor({
   const [manualParticipants, setManualParticipants] = useState<string | null>(
     initialParticipants ?? null,
   )
+  const [showSuggestions, setShowSuggestions] = useState(true)
 
   const selectedGroupId = availableGroups.some((group) => group.id === groupId)
     ? groupId
@@ -122,8 +126,8 @@ function ExpenseEditor({
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const parsedAmount = Number(amount)
-    if (!Number.isFinite(parsedAmount)) {
+    const parsedAmount = parseAmountInput(amount)
+    if (parsedAmount === null) {
       return
     }
 
@@ -162,7 +166,7 @@ function ExpenseEditor({
       <PageHeader
         eyebrow="New / Expense"
         title={editSplitId ? 'Edit split expense' : 'Split a fresh expense'}
-        description="This ports the Android add-expense flow into a web form, with optional group targeting and a faster text-based participant list."
+        description="Add a new shared expense with optional group targeting and quick participant suggestions."
       />
 
       <form className="form-panel glass-panel" onSubmit={handleSubmit}>
@@ -192,25 +196,19 @@ function ExpenseEditor({
           />
         </label>
 
-        <label className="field">
-          <span>Group</span>
-          <select
-            disabled={!hasCurrentUser}
-            onChange={(event) => {
-              const nextGroupId = event.target.value
-              setGroupId(nextGroupId)
-              setManualParticipants(null)
-            }}
-            value={selectedGroupId}
-          >
-            <option value="">No group</option>
-            {availableGroups.map((group) => (
-              <option key={group.id} value={group.id}>
-                {group.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <TitanDropdown
+          disabled={!hasCurrentUser}
+          label="Group"
+          options={[
+            { value: '', label: 'No group' },
+            ...availableGroups.map((group) => ({ value: group.id, label: group.name })),
+          ]}
+          onChange={(nextGroupId) => {
+            setGroupId(nextGroupId)
+            setManualParticipants(null)
+          }}
+          value={selectedGroupId}
+        />
 
         <label className="field field-wide">
           <span>Participants</span>
@@ -223,31 +221,40 @@ function ExpenseEditor({
           />
         </label>
 
-        <div className="helper-block">
-          <p className="eyebrow">Suggestions</p>
-          <div className="chip-row">
-            {knownPeople.map((person: string) => (
-              <button
-                key={person}
-                className="chip chip-button"
-                disabled={!hasCurrentUser}
-                onClick={() => {
-                  const current = sanitizeParticipantList(
-                    participants.split(','),
-                    state.currentUser,
-                  )
+        <TitanSwitch
+          checked={showSuggestions}
+          disabled={!hasCurrentUser}
+          label="Show participant suggestions"
+          onChange={setShowSuggestions}
+        />
 
-                  if (!current.includes(person)) {
-                    setParticipants([...current, person].join(', '))
-                  }
-                }}
-                type="button"
-              >
-                {person}
-              </button>
-            ))}
+        {showSuggestions ? (
+          <div className="helper-block">
+            <p className="eyebrow">Suggestions</p>
+            <div className="chip-row">
+              {knownPeople.map((person: string) => (
+                <button
+                  key={person}
+                  className="chip chip-button"
+                  disabled={!hasCurrentUser}
+                  onClick={() => {
+                    const current = sanitizeParticipantList(
+                      participants.split(','),
+                      state.currentUser,
+                    )
+
+                    if (!current.includes(person)) {
+                      setParticipants([...current, person].join(', '))
+                    }
+                  }}
+                  type="button"
+                >
+                  {person}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="button-row">
           <button className="button button-secondary" onClick={() => navigate(-1)} type="button">

@@ -59,7 +59,7 @@ function EmiEditor({
       <PageHeader
         eyebrow="EMI / Tracker"
         title="Recurring load"
-        description="EMIs still drive the financial health score on the web port, so this surface stays operational instead of decorative."
+        description="Manage recurring EMI commitments that directly affect your financial health score."
       />
 
       <section className="glass-panel form-panel">

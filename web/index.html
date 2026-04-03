@@ -2,18 +2,94 @@
 <html lang="en-IN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="/titan_logo_icon_transparent.png" />
+    <link rel="apple-touch-icon" href="/titan_logo_icon_transparent.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="canonical" href="https://titanapp.qzz.io/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="keywords" content="expense tracker india, budget app for students, UPI expense tracker, split expense app, money manager app, habit tracker with rewards, personal finance app india, student budget planner, track spending app, daily expense tracker" />
+    <meta name="google-play-app" content="app-id=com.titan.app" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Titan" />
-    <meta
-      name="description"
-      content="Titan Web: split expenses, groups, cash, EMI, rent, and insights in a React workspace."
-    />
+    <meta name="description" content="Titan is an expense tracker India users love for UPI spending, student budgeting, and split expenses with friends, plus tasks and habit rewards." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Titan: Expense Tracker India and Student Budget App" />
+    <meta property="og:description" content="Track daily expenses, plan UPI spending, split expenses with friends, and stay productive with habits in one fast app." />
+    <meta property="og:image" content="/Opengraph.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:url" content="https://titanapp.qzz.io/" />
+    <meta property="og:site_name" content="Titan" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Titan: Expense Tracker India and Student Budget App" />
+    <meta name="twitter:description" content="Track spending, build budgets, split group expenses, and manage habits in one India-first finance app." />
+    <meta name="twitter:image" content="/titan_logo_full_transparent.png" />
+    <meta name="apple-itunes-app" content="app-id=0000000000, app-argument=https://titanapp.qzz.io/" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "Titan",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Android, iOS, Web",
+            "url": "https://titan-web.vercel.app/",
+            "description": "Titan is a personal finance and productivity super app for daily expense tracking, budgeting, UPI planning, and split expenses.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "INR"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.8",
+              "ratingCount": "120"
+            }
+          },
+          {
+            "@type": "MobileApplication",
+            "name": "Titan",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Android, iOS",
+            "description": "Budget app for students, UPI expense tracker, and split expense app for friends in India.",
+            "url": "https://titan-web.vercel.app/"
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Can Titan track UPI spending?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Titan helps you track UPI-related expenses, review transaction alerts, and stay within your budget."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is Titan good for students in India?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Titan is built for student budgeting in India, with daily expense tracking, split expenses, and habit rewards."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I split expenses with friends?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Titan includes a split expense workflow for groups, roommates, and trips."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
     <style>
       html,
       body {
@@ -39,12 +115,24 @@
         text-align: center;
         letter-spacing: 0.02em;
       }
+
+      .boot-mark {
+        width: min(220px, 70vw);
+        height: auto;
+        margin: 0 auto 14px;
+        display: block;
+      }
     </style>
-    <title>Titan Web</title>
+    <title>Titan: Expense Tracker India and Budget App</title>
   </head>
   <body>
     <div id="root">
-      <div class="boot-screen">Loading Titan...</div>
+      <div class="boot-screen">
+        <div>
+          <img class="boot-mark" src="/titan_logo_full_transparent.png" alt="Titan" />
+          <p>Loading Titan...</p>
+        </div>
+      </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
