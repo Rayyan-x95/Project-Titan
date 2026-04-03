@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import { formatDate, formatRupees } from '../lib/finance'
-import { useTitan } from '../state/useTitan'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 
 export function RentPage() {
   const navigate = useNavigate()
-  const { state, triggerRentSplit } = useTitan()
+  const state = useTitanState()
+  const { triggerRentSplit } = useTitanActions()
   const hasCurrentUser = Boolean(state.currentUser)
   const [amount, setAmount] = useState('')
   const [members, setMembers] = useState('')

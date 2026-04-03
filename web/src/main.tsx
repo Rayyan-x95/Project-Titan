@@ -30,13 +30,12 @@ if (!rootElement) {
 
 const root = createRoot(rootElement)
 
-function showBootstrapError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error)
+function showBootstrapError() {
   root.render(
     <div className="boot-screen boot-screen-error" role="alert">
       <div>
         <strong>App failed to start.</strong>
-        <p>{message}</p>
+        <p>Reload the app or check the browser console for details.</p>
       </div>
     </div>,
   )
@@ -52,5 +51,5 @@ void import('./App.tsx')
   })
   .catch((error) => {
     console.error(error)
-    showBootstrapError(error)
+    showBootstrapError()
   })

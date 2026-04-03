@@ -9,7 +9,7 @@ import {
   getParticipantSharePaise,
   getSettlementParticipantId,
 } from '../lib/finance'
-import { useTitan } from '../state/useTitan'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 
 export function SettlementPage() {
   const navigate = useNavigate()
@@ -19,7 +19,8 @@ export function SettlementPage() {
   const personId = searchParams.get('person')
     ? decodeURIComponent(searchParams.get('person') ?? '')
     : ''
-  const { state, settleFull, settlePartial } = useTitan()
+  const state = useTitanState()
+  const { settleFull, settlePartial } = useTitanActions()
   const split = state.splits.find((item) => item.id === splitId)
   const [amount, setAmount] = useState('')
   const MAX_AMOUNT_PAISE = 10_000_000_00

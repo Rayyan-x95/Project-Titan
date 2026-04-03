@@ -7,7 +7,7 @@ import {
   formatRupees,
   getCashBalance,
 } from '../lib/finance'
-import { useTitan } from '../state/useTitan'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 
 function downloadFile(filename: string, contents: string, mimeType: string) {
   const blob = new Blob([contents], { type: mimeType })
@@ -25,7 +25,8 @@ function toCsvValue(value: string | number | boolean) {
 
 export default function HistoryPage() {
   const navigate = useNavigate()
-  const { state, deleteSplit, approveTransaction, deleteTransaction } = useTitan()
+  const state = useTitanState()
+  const { deleteSplit, approveTransaction, deleteTransaction } = useTitanActions()
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'pending'>('all')
 

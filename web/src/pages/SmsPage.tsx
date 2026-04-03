@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { PageHeader } from '../components/PageHeader'
 import { formatDate, formatRupees } from '../lib/finance'
 import { parseSmsAlert } from '../services/sms'
-import { useTitan } from '../state/useTitan'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 
 export function SmsPage() {
-  const { state, approveTransaction, deleteTransaction, ingestTransaction } = useTitan()
+  const state = useTitanState()
+  const { approveTransaction, deleteTransaction, ingestTransaction } = useTitanActions()
   const pending = state.transactions.filter((transaction) => !transaction.isApproved)
   const [message, setMessage] = useState('')
 

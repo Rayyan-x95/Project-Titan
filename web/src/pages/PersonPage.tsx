@@ -8,12 +8,12 @@ import {
   getSplitsForPerson,
   isSplitSettled,
 } from '../lib/finance'
-import { useTitan } from '../state/useTitan'
+import { useTitanState } from '../state/useTitan'
 
 export function PersonPage() {
   const params = useParams()
   const personId = params.personId ? decodeURIComponent(params.personId) : ''
-  const { state } = useTitan()
+  const state = useTitanState()
   const balances = getPersonBalances(state.splits, state.currentUser)
   const balance = balances.find((item) => item.personId === personId)?.amountPaise ?? 0
   const splits = getSplitsForPerson(state.splits, state.currentUser, personId)

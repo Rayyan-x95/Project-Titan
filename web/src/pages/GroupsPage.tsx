@@ -1,10 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
-import { useTitan } from '../state/useTitan'
+import { useTitanState } from '../state/useTitan'
 
 export function GroupsPage() {
   const navigate = useNavigate()
-  const { state } = useTitan()
+  const state = useTitanState()
 
   return (
     <div className="page">

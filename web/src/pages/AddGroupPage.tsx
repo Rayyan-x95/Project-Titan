@@ -1,26 +1,41 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
-import { useTitan } from '../state/useTitan'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 
 export function AddGroupPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { state, createGroup, updateGroup } = useTitan()
-  const hasCurrentUser = Boolean(state.currentUser)
+  const state = useTitanState()
+  const { createGroup, updateGroup } = useTitanActions()
   const editGroupId = searchParams.get('edit') ?? ''
   const editGroup = state.groups.find((group) => group.id === editGroupId)
-  const [name, setName] = useState('')
-  const [members, setMembers] = useState('')
+  return (
+    <GroupEditor
+      key={editGroup?.id ?? 'new'}
+      createGroup={createGroup}
+      currentUser={state.currentUser}
+      editGroup={editGroup}
+      navigate={navigate}
+      updateGroup={updateGroup}
+    />
+  )
+}
 
-  useEffect(() => {
-    if (!editGroup) {
-      return
-    }
+type GroupEditorProps = {
+  createGroup: (name: string, members: string[]) => void
+  currentUser: string
+  editGroup?: NonNullable<ReturnType<typeof useTitanState>['groups'][number]>
+  navigate: ReturnType<typeof useNavigate>
+  updateGroup: (payload: { groupId: string; name: string; members: string[] }) => void
+}
 
-    setName(editGroup.name)
-    setMembers(editGroup.members.filter((member) => member !== state.currentUser).join(', '))
-  }, [editGroup, state.currentUser])
+function GroupEditor({ createGroup, currentUser, editGroup, navigate, updateGroup }: GroupEditorProps) {
+  const [name, setName] = useState(editGroup?.name ?? '')
+  const [members, setMembers] = useState(
+    editGroup?.members.filter((member) => member !== currentUser).join(', ') ?? '',
+  )
+  const hasCurrentUser = Boolean(currentUser)
 
   return (
     <div className="page">

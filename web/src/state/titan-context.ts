@@ -1,31 +1,30 @@
 import { createContext } from 'react'
 import type { TitanState } from '../types'
 
-type AddSplitPayload = {
+export type AddSplitPayload = {
   amountPaise: number
   description: string
   participants: string[]
   groupId?: string
 }
 
-type UpdateSplitPayload = AddSplitPayload & {
+export type UpdateSplitPayload = AddSplitPayload & {
   splitId: string
 }
 
-type UpdateGroupPayload = {
+export type UpdateGroupPayload = {
   groupId: string
   name: string
   members: string[]
 }
 
-type UpdateEmiPayload = {
+export type UpdateEmiPayload = {
   emiId: string
   name: string
   amountRupees: number
 }
 
-export type TitanContextValue = {
-  state: TitanState
+export type TitanActions = {
   setCurrentUser: (name: string) => void
   addSplit: (payload: AddSplitPayload) => void
   updateSplit: (payload: UpdateSplitPayload) => void
@@ -45,4 +44,5 @@ export type TitanContextValue = {
   triggerRentSplit: (amountPaise: number, members: string[], recurring: boolean) => void
 }
 
-export const TitanContext = createContext<TitanContextValue | null>(null)
+export const TitanStateContext = createContext<TitanState | null>(null)
+export const TitanActionsContext = createContext<TitanActions | null>(null)

@@ -5,13 +5,14 @@ import {
   getGroupBalances,
   simplifyGroupSettlement,
 } from '../lib/finance'
-import { useTitan } from '../state/useTitan'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 
 export function GroupDetailPage() {
   const navigate = useNavigate()
   const params = useParams()
   const groupId = params.groupId ?? ''
-  const { state, deleteGroup } = useTitan()
+  const state = useTitanState()
+  const { deleteGroup } = useTitanActions()
   const group = state.groups.find((item) => item.id === groupId)
 
   if (!group) {

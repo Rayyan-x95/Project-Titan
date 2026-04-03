@@ -5,10 +5,10 @@ import {
   getSpendTrends,
   getSpendingTriggers,
 } from '../lib/finance'
-import { useTitan } from '../state/useTitan'
+import { useTitanState } from '../state/useTitan'
 
 export function PatternsPage() {
-  const { state } = useTitan()
+  const state = useTitanState()
   const hasData =
     state.splits.length > 0 ||
     state.transactions.length > 0 ||
@@ -50,7 +50,7 @@ export function PatternsPage() {
 }
 
 export function TriggersPage() {
-  const { state } = useTitan()
+  const state = useTitanState()
   const hasData = state.splits.length > 0 || state.transactions.length > 0
   const triggers = getSpendingTriggers(state.splits, state.transactions)
 
@@ -85,7 +85,7 @@ export function TriggersPage() {
 }
 
 export function HealthPage() {
-  const { state } = useTitan()
+  const state = useTitanState()
   const hasData = state.splits.length > 0 || state.emis.length > 0
   const health = getHealthScore(state.emis, state.splits)
 

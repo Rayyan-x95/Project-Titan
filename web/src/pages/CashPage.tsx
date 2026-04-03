@@ -1,9 +1,10 @@
 ﻿import { useState } from 'react'
-import { useTitan } from '../state/useTitan'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 import { formatDate, formatRupees, getCashBalance } from '../lib/finance'
 
 export default function CashPage() {
-  const { state, addCashEntry } = useTitan()
+  const state = useTitanState()
+  const { addCashEntry } = useTitanActions()
   const [amount, setAmount] = useState('')
   const [entryType, setEntryType] = useState<'IN' | 'OUT'>('IN')
   const totalBalance = getCashBalance(state.cashEntries)

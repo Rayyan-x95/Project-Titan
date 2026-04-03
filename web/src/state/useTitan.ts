@@ -1,12 +1,29 @@
 import { useContext } from 'react'
-import { TitanContext } from './titan-context'
+import { TitanActionsContext, TitanStateContext } from './titan-context'
 
-export function useTitan() {
-  const context = useContext(TitanContext)
+export function useTitanState() {
+  const state = useContext(TitanStateContext)
 
-  if (!context) {
-    throw new Error('useTitan must be used within TitanProvider')
+  if (!state) {
+    throw new Error('useTitanState must be used within TitanProvider')
   }
 
-  return context
+  return state
+}
+
+export function useTitanActions() {
+  const actions = useContext(TitanActionsContext)
+
+  if (!actions) {
+    throw new Error('useTitanActions must be used within TitanProvider')
+  }
+
+  return actions
+}
+
+export function useTitan() {
+  const state = useTitanState()
+  const actions = useTitanActions()
+
+  return { state, ...actions }
 }

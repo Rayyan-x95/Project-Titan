@@ -4,10 +4,10 @@ import { HealthInsightsSection } from '../components/HealthInsightsSection'
 import { NetBalanceSection } from '../components/NetBalanceSection'
 import { PeopleSection } from '../components/PeopleSection'
 import { formatDate } from '../lib/finance'
-import { useTitan } from '../state/useTitan'
+import { useTitanState } from '../state/useTitan'
 
 export default function HomePage() {
-  const { state } = useTitan()
+  const state = useTitanState()
   const recentNotifications = state.notifications.slice(0, 3)
 
   return (

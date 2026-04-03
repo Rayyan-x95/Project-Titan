@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import {
@@ -7,7 +7,7 @@ import {
   sanitizeParticipantList,
 } from '../lib/finance'
 import type { TitanState } from '../types'
-import { useTitan } from '../state/useTitan'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 
 function getDefaultParticipants(
   groupId: string,
@@ -28,7 +28,8 @@ function getDefaultParticipants(
 export function AddExpensePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { state, addSplit, updateSplit, deleteSplit } = useTitan()
+  const state = useTitanState()
+  const { addSplit, updateSplit, deleteSplit } = useTitanActions()
   const hasCurrentUser = Boolean(state.currentUser)
   const defaultGroupId = searchParams.get('group') ?? ''
   const editSplitId = searchParams.get('edit') ?? ''
@@ -37,16 +38,75 @@ export function AddExpensePage() {
     (group) => group.members.includes(state.currentUser) || group.id === editSplit?.groupId,
   )
 
-  const [amount, setAmount] = useState('')
+  return (
+    <ExpenseEditor
+      key={`${editSplit?.id ?? 'new'}:${defaultGroupId}`}
+      availableGroups={availableGroups}
+      deleteSplit={deleteSplit}
+      editSplitId={editSplit?.id}
+      hasCurrentUser={hasCurrentUser}
+      initialAmount={editSplit ? (editSplit.amountPaise / 100).toFixed(2) : ''}
+      initialGroupId={editSplit?.groupId ?? defaultGroupId}
+      initialParticipants={editSplit?.participants.join(', ')}
+      navigate={navigate}
+      onSave={addSplit}
+      onUpdate={updateSplit}
+      state={state}
+    />
+  )
+}
+
+type ExpenseEditorProps = {
+  availableGroups: TitanState['groups']
+  deleteSplit: (splitId: string) => void
+  editSplitId?: string
+  hasCurrentUser: boolean
+  initialAmount: string
+  initialGroupId: string
+  initialParticipants: string | undefined
+  navigate: ReturnType<typeof useNavigate>
+  onSave: (payload: {
+    amountPaise: number
+    description: string
+    participants: string[]
+    groupId?: string
+  }) => void
+  onUpdate: (payload: {
+    splitId: string
+    amountPaise: number
+    description: string
+    participants: string[]
+    groupId?: string
+  }) => void
+  state: TitanState
+}
+
+function ExpenseEditor({
+  availableGroups,
+  deleteSplit,
+  editSplitId,
+  hasCurrentUser,
+  initialAmount,
+  initialGroupId,
+  initialParticipants,
+  navigate,
+  onSave,
+  onUpdate,
+  state,
+}: ExpenseEditorProps) {
+  const [amount, setAmount] = useState(initialAmount)
   const [description, setDescription] = useState('')
-  const [groupId, setGroupId] = useState(defaultGroupId)
-  const [manualParticipants, setManualParticipants] = useState<string | null>(null)
+  const [groupId, setGroupId] = useState(initialGroupId)
+  const [manualParticipants, setManualParticipants] = useState<string | null>(
+    initialParticipants ?? null,
+  )
+
   const selectedGroupId = availableGroups.some((group) => group.id === groupId)
     ? groupId
     : ''
   const selectedGroup = findGroup(availableGroups, selectedGroupId)
-  const knownPeople = selectedGroup
-    ? selectedGroup.members.filter((member) => member !== state.currentUser)
+  const knownPeople: string[] = selectedGroup
+    ? selectedGroup.members.filter((member: string) => member !== state.currentUser)
     : getKnownPeople(state)
   const autoParticipants = getDefaultParticipants(
     selectedGroupId,
@@ -54,17 +114,6 @@ export function AddExpensePage() {
     availableGroups,
   )
   const participants = manualParticipants ?? autoParticipants
-
-  useEffect(() => {
-    if (!editSplit) {
-      return
-    }
-
-    setAmount((editSplit.amountPaise / 100).toFixed(2))
-    setDescription(editSplit.description)
-    setGroupId(editSplit.groupId ?? '')
-    setManualParticipants(editSplit.participants.join(', '))
-  }, [editSplit])
 
   function setParticipants(value: string) {
     setManualParticipants(value === autoParticipants ? null : value)
@@ -94,10 +143,10 @@ export function AddExpensePage() {
       groupId: selectedGroup?.id,
     }
 
-    if (editSplit) {
-      updateSplit({ splitId: editSplit.id, ...payload })
+    if (editSplitId) {
+      onUpdate({ splitId: editSplitId, ...payload })
     } else {
-      addSplit(payload)
+      onSave(payload)
     }
 
     if (selectedGroup) {
@@ -112,7 +161,7 @@ export function AddExpensePage() {
     <div className="page">
       <PageHeader
         eyebrow="New / Expense"
-        title={editSplit ? 'Edit split expense' : 'Split a fresh expense'}
+        title={editSplitId ? 'Edit split expense' : 'Split a fresh expense'}
         description="This ports the Android add-expense flow into a web form, with optional group targeting and a faster text-based participant list."
       />
 
@@ -177,7 +226,7 @@ export function AddExpensePage() {
         <div className="helper-block">
           <p className="eyebrow">Suggestions</p>
           <div className="chip-row">
-            {knownPeople.map((person) => (
+            {knownPeople.map((person: string) => (
               <button
                 key={person}
                 className="chip chip-button"
@@ -204,11 +253,11 @@ export function AddExpensePage() {
           <button className="button button-secondary" onClick={() => navigate(-1)} type="button">
             Cancel
           </button>
-          {editSplit ? (
+          {editSplitId ? (
             <button
               className="button button-ghost"
               onClick={() => {
-                deleteSplit(editSplit.id)
+                deleteSplit(editSplitId)
                 navigate('/history')
               }}
               type="button"
@@ -217,7 +266,7 @@ export function AddExpensePage() {
             </button>
           ) : null}
           <button className="button button-primary" disabled={!hasCurrentUser} type="submit">
-            {editSplit ? 'Update split' : 'Save split'}
+            {editSplitId ? 'Update split' : 'Save split'}
           </button>
         </div>
       </form>

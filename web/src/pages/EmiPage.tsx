@@ -1,26 +1,58 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import { formatDate, formatRupees } from '../lib/finance'
-import { useTitan } from '../state/useTitan'
+import type { TitanState } from '../types'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 
 export function EmiPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { state, addEmi, updateEmi, deleteEmi } = useTitan()
+  const state = useTitanState()
+  const { addEmi, updateEmi, deleteEmi } = useTitanActions()
   const editEmiId = searchParams.get('edit') ?? ''
   const editEmi = state.emis.find((emi) => emi.id === editEmiId)
-  const [name, setName] = useState('')
-  const [amount, setAmount] = useState('')
   const MAX_AMOUNT_RUPEES = 10_000_000
 
-  useEffect(() => {
-    if (!editEmi) {
-      return
-    }
+  return (
+    <EmiEditor
+      addEmi={addEmi}
+      deleteEmi={deleteEmi}
+      editEmi={editEmi}
+      key={editEmi?.id ?? 'new'}
+      maxAmountRupees={MAX_AMOUNT_RUPEES}
+      state={state}
+      setSearchParams={setSearchParams}
+      updateEmi={updateEmi}
+    />
+  )
+}
 
-    setName(editEmi.name)
-    setAmount(String(editEmi.amountRupees))
-  }, [editEmi])
+type EmiEditorProps = {
+  addEmi: (name: string, amountRupees: number) => void
+  deleteEmi: (emiId: string) => void
+  editEmi?: {
+    id: string
+    name: string
+    amountRupees: number
+    dueDate: number
+  }
+  maxAmountRupees: number
+  state: TitanState
+  setSearchParams: ReturnType<typeof useSearchParams>[1]
+  updateEmi: (payload: { emiId: string; name: string; amountRupees: number }) => void
+}
+
+function EmiEditor({
+  addEmi,
+  deleteEmi,
+  editEmi,
+  maxAmountRupees,
+  state,
+  setSearchParams,
+  updateEmi,
+}: EmiEditorProps) {
+  const [name, setName] = useState(editEmi?.name ?? '')
+  const [amount, setAmount] = useState(editEmi ? String(editEmi.amountRupees) : '')
 
   return (
     <div className="page">
@@ -55,7 +87,7 @@ export function EmiPage() {
             className="button button-primary"
             onClick={() => {
               const value = Number(amount)
-              if (name.trim() && Number.isFinite(value) && value > 0 && value <= MAX_AMOUNT_RUPEES) {
+              if (name.trim() && Number.isFinite(value) && value > 0 && value <= maxAmountRupees) {
                 if (editEmi) {
                   updateEmi({ emiId: editEmi.id, name: name.trim(), amountRupees: value })
                 } else {

@@ -1,7 +1,9 @@
 import {
   startTransition,
   useEffect,
+  useMemo,
   useReducer,
+  useRef,
   type ReactNode,
 } from 'react'
 import { emptyState } from '../data/emptyState'
@@ -20,7 +22,11 @@ import type {
   Split,
   TitanState,
 } from '../types'
-import { TitanContext, type TitanContextValue } from './titan-context'
+import {
+  TitanActionsContext,
+  TitanStateContext,
+  type TitanActions,
+} from './titan-context'
 
 const STORAGE_KEY = 'titan-web-state-v2'
 const RENT_INTERVAL_DAYS = 30
@@ -654,6 +660,7 @@ function reducer(state: TitanState, action: Action): TitanState {
 
 export function TitanProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, getInitialState)
+  const hasHydratedRef = useRef(false)
 
   useEffect(() => {
     let active = true
@@ -665,12 +672,14 @@ export function TitanProvider({ children }: { children: ReactNode }) {
           return
         }
 
+        hasHydratedRef.current = true
         startTransition(() => {
           dispatch({ type: 'HYDRATE_STATE', state: persistedState })
           dispatch({ type: 'RUN_DUE_RENT_SCHEDULES' })
         })
       })
       .catch((err) => {
+        hasHydratedRef.current = true
         console.warn('Failed to hydrate state from storage:', err)
       })
 
@@ -690,13 +699,17 @@ export function TitanProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    if (!hasHydratedRef.current) {
+      return
+    }
+
     void titanBackend.saveState(state).catch((err) => {
       console.warn('Failed to save Titan state:', err)
     })
   }, [state])
 
-  const value: TitanContextValue = {
-    state,
+  const actions = useMemo<TitanActions>(
+    () => ({
     setCurrentUser(name) {
       startTransition(() => {
         dispatch({ type: 'SET_CURRENT_USER', name })
@@ -787,7 +800,13 @@ export function TitanProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'TRIGGER_RENT_SPLIT', amountPaise, members, recurring })
       })
     },
-  }
+    }),
+    [dispatch],
+  )
 
-  return <TitanContext.Provider value={value}>{children}</TitanContext.Provider>
+  return (
+    <TitanStateContext.Provider value={state}>
+      <TitanActionsContext.Provider value={actions}>{children}</TitanActionsContext.Provider>
+    </TitanStateContext.Provider>
+  )
 }

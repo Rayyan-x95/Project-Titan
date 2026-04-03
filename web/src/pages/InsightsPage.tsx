@@ -6,7 +6,7 @@ import {
   getSpendTrends,
   getSpendingTriggers,
 } from '../lib/finance'
-import { useTitan } from '../state/useTitan'
+import { useTitanState } from '../state/useTitan'
 
 function buildPath(values: number[]) {
   if (values.length === 0) {
@@ -24,7 +24,7 @@ function buildPath(values: number[]) {
 }
 
 export default function InsightsPage() {
-  const { state } = useTitan()
+  const state = useTitanState()
   const trends = getSpendTrends(state.splits, state.cashEntries, state.transactions)
   const health = getHealthScore(state.emis, state.splits)
   const triggers = getSpendingTriggers(state.splits, state.transactions)
