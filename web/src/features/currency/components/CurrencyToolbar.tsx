@@ -21,7 +21,7 @@ export function CurrencyToolbar() {
       />
       <TitanSwitch
         checked={showConverted}
-        label="Show converted values"
+        label="Show exchange rates"
         onChange={setShowConverted}
       />
     </section>

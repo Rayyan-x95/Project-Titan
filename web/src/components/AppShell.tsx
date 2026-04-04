@@ -1,5 +1,6 @@
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion'
 import { NavLink, useLocation, useOutlet } from 'react-router-dom'
+import { useState } from 'react'
 import { CurrencyToolbar } from '../features/currency/components/CurrencyToolbar'
 import { OfflineStatusBar } from '../features/offline-sync/components/OfflineStatusBar'
 import { PwaCard } from './PwaCard'
@@ -18,6 +19,7 @@ export default function AppShell() {
   const shouldReduceMotion = useReducedMotion()
   const state = useTitanState()
   const { setCurrentUser } = useTitanActions()
+  const [showProfile, setShowProfile] = useState(true)
 
   return (
     <div className="app-container">
@@ -29,18 +31,31 @@ export default function AppShell() {
       <header className="shell-brand" aria-label="Titan app">
         <img className="shell-brand-wordmark" src="/titan_logo_full_transparent.png" alt="Titan logo" />
       </header>
-      <section className="profile-setup glass-panel" aria-label="Profile setup">
-        <label className="field profile-setup-field">
-          <span>Profile name</span>
-          <input
-            aria-label="Your profile name"
-            maxLength={28}
-            onChange={(event) => setCurrentUser(event.target.value)}
-            placeholder="Set your name to unlock splits"
-            value={state.currentUser}
-          />
-        </label>
-      </section>
+      {showProfile && (
+        <section className="profile-setup glass-panel" aria-label="Profile setup">
+          <div className="profile-header">
+            <h2 className="profile-title">Setup</h2>
+            <button
+              className="profile-close-btn"
+              onClick={() => setShowProfile(false)}
+              aria-label="Close profile section"
+              title="Minimize profile setup"
+            >
+              ×
+            </button>
+          </div>
+          <label className="field profile-setup-field">
+            <span>Profile name</span>
+            <input
+              aria-label="Your profile name"
+              maxLength={28}
+              onChange={(event) => setCurrentUser(event.target.value)}
+              placeholder="Enter your name to unlock splits"
+              value={state.currentUser}
+            />
+          </label>
+        </section>
+      )}
       <OfflineStatusBar />
       <CurrencyToolbar />
       <main id="main" className="screen-content">

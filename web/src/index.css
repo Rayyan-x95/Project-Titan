@@ -842,8 +842,8 @@ select:focus-visible {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   background: var(--text-main);
   transform: translateX(0);
@@ -1185,6 +1185,62 @@ select {
 .profile-setup {
   margin-top: 12px;
   padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: slideDown 200ms cubic-bezier(.4, 0, .2, 1) forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-title {
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.profile-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: background-color 130ms ease, color 130ms ease;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+
+.profile-close-btn:hover {
+  background-color: rgba(90, 167, 255, 0.12);
+  color: var(--text-main);
+}
+
+.profile-close-btn:active {
+  background-color: rgba(90, 167, 255, 0.18);
 }
 
 .profile-setup-field {
@@ -1468,6 +1524,11 @@ select {
 .field select:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(126, 216, 255, 0.3);
+  transition: box-shadow 100ms ease;
+}
+
+.titan-switch:focus-visible {
+  box-shadow: 0 0 0 2px rgba(90, 167, 255, 0.5), 0 0 8px rgba(126, 216, 255, 0.4);
 }
 
 .nav-label {
@@ -1684,7 +1745,22 @@ select {
   }
 
   .feature-grid {
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .content-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  .home-page {
+    gap: 24px;
+  }
+
+  .glass-panel,
+  .sidebar-panel {
+    padding: clamp(20px, 2.5vw, 28px);
   }
 }
 

@@ -14,7 +14,7 @@ export const FeatureGrid = memo(() => {
       </Link>
       <Link className="feature-tile" to="/emis">
         <span>EMI</span>
-        <strong>Manage monthly budget load</strong>
+        <strong>Plan your monthly payments</strong>
       </Link>
       <Link className="feature-tile" to="/rent">
         <span>Rent</span>

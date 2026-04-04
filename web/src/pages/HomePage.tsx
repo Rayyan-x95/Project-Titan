@@ -63,7 +63,7 @@ export default function HomePage() {
 
         <div className="list-block">
           {recentNotifications.length === 0 ? (
-            <p className="muted-copy">No activity yet. Add your first expense to start.</p>
+            <p className="muted-copy">Start by adding an expense or creating a group to see activity here.</p>
           ) : (
             recentNotifications.map((note) => (
               <article key={note.id} className={`list-row list-row-static note-${note.kind}`}>
