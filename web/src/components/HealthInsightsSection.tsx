@@ -1,9 +1,11 @@
 import { memo, useMemo } from 'react'
+import { m, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { getHealthScore, mapReverseInsight, getSpendTrends } from '../lib/finance'
 import type { TitanState } from '../types'
 
 export const HealthInsightsSection = memo(({ state }: { state: TitanState }) => {
+  const shouldReduceMotion = useReducedMotion()
   // Memoize expensive computations
   const health = useMemo(() => {
     return getHealthScore(state.emis, state.splits)
@@ -24,6 +26,14 @@ export const HealthInsightsSection = memo(({ state }: { state: TitanState }) => 
         <div className="inline-split">
           <strong className={`status-${health.status.toLowerCase()}`}>{health.score}%</strong>
           <span>{health.status}</span>
+        </div>
+        <div className="metric-progress" aria-hidden="true">
+          <m.div
+            className="metric-progress-fill"
+            initial={shouldReduceMotion ? false : { scaleX: 0.2, opacity: 0.7 }}
+            animate={shouldReduceMotion ? { width: `${health.score}%` } : { scaleX: 1, opacity: 1, width: `${health.score}%` }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.36, ease: [0.2, 0.8, 0.2, 1] }}
+          />
         </div>
         <p>{health.recommendation}</p>
         <Link className="inline-link" to="/insights/health">

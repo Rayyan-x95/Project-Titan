@@ -36,6 +36,8 @@ function GroupEditor({ createGroup, currentUser, editGroup, navigate, updateGrou
     editGroup?.members.filter((member) => member !== currentUser).join(', ') ?? '',
   )
   const hasCurrentUser = Boolean(currentUser)
+  const [formError, setFormError] = useState('')
+  const [showSuccess, setShowSuccess] = useState(false)
 
   return (
     <div className="page">
@@ -49,6 +51,7 @@ function GroupEditor({ createGroup, currentUser, editGroup, navigate, updateGrou
         className="glass-panel form-panel"
         onSubmit={(event) => {
           event.preventDefault()
+          setFormError('')
 
           const memberList = members
             .split(',')
@@ -56,6 +59,7 @@ function GroupEditor({ createGroup, currentUser, editGroup, navigate, updateGrou
             .filter(Boolean)
 
           if (!name.trim()) {
+            setFormError('Enter a group name before continuing.')
             return
           }
 
@@ -64,12 +68,13 @@ function GroupEditor({ createGroup, currentUser, editGroup, navigate, updateGrou
           } else {
             createGroup(name.trim(), memberList)
           }
+          setShowSuccess(true)
           navigate('/groups')
         }}
       >
         {!hasCurrentUser ? (
           <p className="muted-copy">
-            Save your name in the sidebar first so Titan can add you to the group.
+            Set your profile name at the top so Titan can add you to the group.
           </p>
         ) : null}
         <label className="field">
@@ -92,6 +97,13 @@ function GroupEditor({ createGroup, currentUser, editGroup, navigate, updateGrou
             value={members}
           />
         </label>
+
+        {formError ? <p className="inline-feedback inline-feedback-error">{formError}</p> : null}
+        {showSuccess ? (
+          <p className="inline-feedback inline-feedback-success success-pop" aria-live="polite">
+            Group saved.
+          </p>
+        ) : null}
 
         <div className="button-row">
           <button className="button button-secondary" onClick={() => navigate(-1)} type="button">

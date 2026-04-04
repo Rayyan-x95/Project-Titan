@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react'
+import { m, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { formatDate, formatPaise } from '../lib/finance'
 import type { TitanState } from '../types'
@@ -11,6 +12,7 @@ import {
 } from '../lib/finance'
 
 export const NetBalanceSection = memo(({ state }: { state: TitanState }) => {
+  const shouldReduceMotion = useReducedMotion()
   const hasCurrentUser = Boolean(state.currentUser)
   const hasWorkspaceData = state.groups.length > 0 || state.splits.length > 0
   
@@ -69,7 +71,15 @@ export const NetBalanceSection = memo(({ state }: { state: TitanState }) => {
     <section className="hero-grid">
       <div className={`glass-panel hero-panel ${hasCurrentUser ? 'hero-panel-visible' : 'hero-panel-hidden'}`}>
         <p className="eyebrow">Net balance</p>
-        <h2 className="display-value">{formatPaise(totalOwedPaise - totalOwePaise)}</h2>
+        <m.h2
+          key={totalOwedPaise - totalOwePaise}
+          className="display-value"
+          initial={shouldReduceMotion ? false : { opacity: 0.6, y: 8 }}
+          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.24, ease: [0.2, 0.8, 0.2, 1] }}
+        >
+          {formatPaise(totalOwedPaise - totalOwePaise)}
+        </m.h2>
         <p className="hero-copy">
           {summary.peopleWhoOweCount} people still owe you.
           {summary.oldestPendingSplit
@@ -102,7 +112,7 @@ export const NetBalanceSection = memo(({ state }: { state: TitanState }) => {
           <p className="eyebrow">First run</p>
           <h2 className="display-value">Set your name.</h2>
           <p className="hero-copy">
-            The sidebar profile powers every payer-based calculation. Once that is
+            Your profile name powers every payer-based calculation. Once that is
             saved, Titan can start building balances from the real entries you add.
           </p>
           <div className="metric-grid">

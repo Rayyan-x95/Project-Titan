@@ -1,10 +1,10 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { Analytics } from '@vercel/analytics/react'
-import { SpeedInsights } from '@vercel/speed-insights/react'
+import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion'
 import AppShell from './components/AppShell'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { GoogleAnalytics } from './components/GoogleAnalytics'
+import { CurrencyProvider } from './features/currency/components/CurrencyProvider'
 import { TitanProvider } from './state/TitanStore'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -27,55 +27,118 @@ const ExpenseTrackerIndiaPage = lazy(() => import('./pages/SeoLandingPages').the
 const BudgetAppForStudentsPage = lazy(() => import('./pages/SeoLandingPages').then((module) => ({ default: module.BudgetAppForStudentsPage })))
 const SplitExpenseAppIndiaPage = lazy(() => import('./pages/SeoLandingPages').then((module) => ({ default: module.SplitExpenseAppIndiaPage })))
 
-function RouteFallback() {
+function RouteSuspense({ children, kind }: { children: ReactNode; kind: 'dashboard' | 'form' | 'list' | 'insight' }) {
+  const rowsByKind: Record<'dashboard' | 'form' | 'list' | 'insight', string[]> = {
+    dashboard: ['lg', 'md', 'sm'],
+    form: ['lg', 'md', 'md', 'sm'],
+    list: ['md', 'md', 'md', 'md'],
+    insight: ['lg', 'lg', 'md', 'md'],
+  }
+
   return (
-    <div className="boot-screen" role="status" aria-live="polite">
-      <img className="boot-logo" src="/titan_logo_icon_transparent.png" alt="Titan logo" />
-      <span>Loading Titan...</span>
-    </div>
+    <Suspense
+      fallback={
+        <section className="glass-panel route-skeleton" aria-live="polite" aria-busy="true">
+          <p className="eyebrow">Loading</p>
+          <div className="skeleton-stack" aria-hidden="true">
+            {rowsByKind[kind].map((row, index) => (
+              <span key={`${row}-${index}`} className={`skeleton-line skeleton-line-${row}`} />
+            ))}
+          </div>
+        </section>
+      }
+    >
+      {children}
+    </Suspense>
+  )
+}
+
+function SplashScreen() {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <m.div
+      className="splash-overlay"
+      initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+      role="status"
+      aria-live="polite"
+      aria-label="Titan is starting"
+    >
+      <m.div
+        className="splash-card glass-panel"
+        initial={shouldReduceMotion ? false : { scale: 0.96, y: 10 }}
+        animate={shouldReduceMotion ? { scale: 1 } : { scale: 1, y: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.48, ease: [0.2, 0.8, 0.2, 1] }}
+      >
+        <div className="splash-mark-wrap">
+          <m.img
+            className="splash-mark"
+            src="/titan_logo_icon_transparent.png"
+            alt="Titan logo"
+            initial={shouldReduceMotion ? false : { scale: 0.88, opacity: 0.7 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.38, ease: [0.2, 0.8, 0.2, 1] }}
+          />
+          <div className="splash-ring" aria-hidden="true" />
+        </div>
+        <div>
+          <p className="eyebrow">Titan</p>
+          <h1 className="splash-title">Expense mode on</h1>
+          <p className="splash-copy">Fast tracking. Offline ready. Shared by default.</p>
+        </div>
+      </m.div>
+    </m.div>
   )
 }
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowSplash(false), 1250)
+    return () => window.clearTimeout(timer)
+  }, [])
+
   return (
     <ErrorBoundary>
       <TitanProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route
-              element={
-                <Suspense fallback={<RouteFallback />}>
-                  <AppShell />
-                </Suspense>
-              }
-              path="/"
-            >
-              <Route element={<HomePage />} index />
-              <Route element={<AddExpensePage />} path="expense/new" />
-              <Route element={<HistoryPage />} path="history" />
-              <Route element={<PersonPage />} path="people/:personId" />
-              <Route element={<SettlementPage />} path="settlements/:splitId" />
-              <Route element={<GroupsPage />} path="groups" />
-              <Route element={<AddGroupPage />} path="groups/new" />
-              <Route element={<GroupDetailPage />} path="groups/:groupId" />
-              <Route element={<SmsPage />} path="sms" />
-              <Route element={<CashPage />} path="cash" />
-              <Route element={<EmiPage />} path="emis" />
-              <Route element={<RentPage />} path="rent" />
-              <Route element={<InsightsPage />} path="insights" />
-              <Route element={<PatternsPage />} path="insights/patterns" />
-              <Route element={<TriggersPage />} path="insights/triggers" />
-              <Route element={<HealthPage />} path="insights/health" />
-              <Route element={<ExpenseTrackerIndiaPage />} path="expense-tracker-india" />
-              <Route element={<BudgetAppForStudentsPage />} path="budget-app-for-students" />
-              <Route element={<SplitExpenseAppIndiaPage />} path="split-expense-app-india" />
-              <Route element={<Navigate replace to="/" />} path="*" />
-            </Route>
-          </Routes>
-          <GoogleAnalytics />
-          <Analytics />
-          <SpeedInsights />
-        </BrowserRouter>
+        <CurrencyProvider>
+          <LazyMotion features={domAnimation}>
+            <BrowserRouter>
+              <Routes>
+                <Route element={<AppShell />} path="/">
+                  <Route element={<RouteSuspense kind="dashboard"><HomePage /></RouteSuspense>} index />
+                  <Route element={<RouteSuspense kind="form"><AddExpensePage /></RouteSuspense>} path="expense/new" />
+                  <Route element={<RouteSuspense kind="list"><HistoryPage /></RouteSuspense>} path="history" />
+                  <Route element={<RouteSuspense kind="list"><PersonPage /></RouteSuspense>} path="people/:personId" />
+                  <Route element={<RouteSuspense kind="form"><SettlementPage /></RouteSuspense>} path="settlements/:splitId" />
+                  <Route element={<RouteSuspense kind="list"><GroupsPage /></RouteSuspense>} path="groups" />
+                  <Route element={<RouteSuspense kind="form"><AddGroupPage /></RouteSuspense>} path="groups/new" />
+                  <Route element={<RouteSuspense kind="list"><GroupDetailPage /></RouteSuspense>} path="groups/:groupId" />
+                  <Route element={<RouteSuspense kind="form"><SmsPage /></RouteSuspense>} path="sms" />
+                  <Route element={<RouteSuspense kind="form"><CashPage /></RouteSuspense>} path="cash" />
+                  <Route element={<RouteSuspense kind="form"><EmiPage /></RouteSuspense>} path="emis" />
+                  <Route element={<RouteSuspense kind="form"><RentPage /></RouteSuspense>} path="rent" />
+                  <Route element={<RouteSuspense kind="insight"><InsightsPage /></RouteSuspense>} path="insights" />
+                  <Route element={<RouteSuspense kind="insight"><PatternsPage /></RouteSuspense>} path="insights/patterns" />
+                  <Route element={<RouteSuspense kind="insight"><TriggersPage /></RouteSuspense>} path="insights/triggers" />
+                  <Route element={<RouteSuspense kind="insight"><HealthPage /></RouteSuspense>} path="insights/health" />
+                  <Route element={<RouteSuspense kind="list"><ExpenseTrackerIndiaPage /></RouteSuspense>} path="expense-tracker-india" />
+                  <Route element={<RouteSuspense kind="list"><BudgetAppForStudentsPage /></RouteSuspense>} path="budget-app-for-students" />
+                  <Route element={<RouteSuspense kind="list"><SplitExpenseAppIndiaPage /></RouteSuspense>} path="split-expense-app-india" />
+                  <Route element={<Navigate replace to="/" />} path="*" />
+                </Route>
+              </Routes>
+              <GoogleAnalytics />
+            </BrowserRouter>
+          </LazyMotion>
+          <AnimatePresence>
+            {showSplash ? <SplashScreen key="splash" /> : null}
+          </AnimatePresence>
+        </CurrencyProvider>
       </TitanProvider>
     </ErrorBoundary>
   )

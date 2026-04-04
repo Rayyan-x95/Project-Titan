@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Titan Vault",
+  "name": "Titan",
   "short_name": "Titan",
-  "description": "Titan is an installable finance workspace for shared expenses, cash flow, EMI planning, rent cycles, and ambient insights.",
+  "description": "Titan is a fast, installable finance workspace for shared expenses, budgeting, UPI planning, and offline-first usage.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -15,8 +15,16 @@
   "related_applications": [],
   "icons": [
     {
-      "src": "/titan_logo_icon_transparent.png",
-      "type": "image/png"
+      "src": "/titan-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/titan-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [

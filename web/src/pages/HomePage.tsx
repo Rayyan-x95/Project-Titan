@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom'
 
 export default function HomePage() {
   const state = useTitanState()
-  const recentNotifications = state.notifications.slice(0, 3)
+  const recentNotifications = state.notifications.slice(0, 2)
 
   return (
     <div className="page home-page">
@@ -17,35 +17,32 @@ export default function HomePage() {
         <NetBalanceSection state={state} />
       </section>
 
+      <section className="glass-panel compact-panel">
+        <div className="panel-head">
+          <div>
+            <p className="eyebrow">Start</p>
+            <h3>What do you want to do now?</h3>
+          </div>
+        </div>
+        <div className="button-row">
+          <Link className="button button-primary" to="/expense/new">
+            Add expense
+          </Link>
+          <Link className="button button-secondary" to="/groups/new">
+            Create group
+          </Link>
+        </div>
+      </section>
+
       <section className="feature-grid-panel glass-panel">
         <div className="panel-head">
           <div>
-            <p className="eyebrow">Shortcuts</p>
+            <p className="eyebrow">Tools</p>
             <h3>Quick actions</h3>
           </div>
         </div>
         <div className="feature-grid">
           <FeatureGrid />
-        </div>
-      </section>
-
-      <section className="glass-panel">
-        <div className="panel-head">
-          <div>
-            <p className="eyebrow">Guides</p>
-            <h3>Discover Titan use cases</h3>
-          </div>
-        </div>
-        <div className="chip-row">
-          <Link className="chip chip-button" to="/expense-tracker-india">
-            Expense tracker India for daily spending
-          </Link>
-          <Link className="chip chip-button" to="/budget-app-for-students">
-            Budget app for students in India
-          </Link>
-          <Link className="chip chip-button" to="/split-expense-app-india">
-            Split expense app for friends in India
-          </Link>
         </div>
       </section>
 
@@ -66,7 +63,7 @@ export default function HomePage() {
 
         <div className="list-block">
           {recentNotifications.length === 0 ? (
-            <p className="muted-copy">Actions you take in Titan will show up here.</p>
+            <p className="muted-copy">No activity yet. Add your first expense to start.</p>
           ) : (
             recentNotifications.map((note) => (
               <article key={note.id} className={`list-row list-row-static note-${note.kind}`}>

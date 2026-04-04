@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en-IN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <title>Titan is offline</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at top, rgba(65, 138, 255, 0.22), transparent 40%),
+          linear-gradient(180deg, #0a0e19 0%, #050910 100%);
+        color: #eef4ff;
+        font-family: Inter, system-ui, sans-serif;
+        text-align: center;
+      }
+
+      .card {
+        width: min(100%, 520px);
+        padding: 28px;
+        border-radius: 24px;
+        background: rgba(9, 14, 26, 0.82);
+        border: 1px solid rgba(128, 171, 255, 0.16);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(18px);
+      }
+
+      img {
+        width: 96px;
+        height: 96px;
+        display: block;
+        margin: 0 auto 16px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.75rem, 5vw, 2.5rem);
+      }
+
+      p {
+        margin: 0 0 20px;
+        line-height: 1.6;
+        color: rgba(238, 244, 255, 0.74);
+      }
+
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 18px;
+        border-radius: 999px;
+        color: #081018;
+        background: linear-gradient(135deg, #7ed8ff, #5aa7ff);
+        text-decoration: none;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <img src="/titan-icon-192.png" alt="Titan" />
+      <h1>You are offline</h1>
+      <p>Titan cached the core app shell. Reconnect to sync the latest data, or reopen the app once your network is back.</p>
+      <a href="/">Retry Titan</a>
+    </main>
+  </body>
+</html>

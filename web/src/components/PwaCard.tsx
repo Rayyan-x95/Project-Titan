@@ -25,6 +25,7 @@ export function PwaCard() {
   const [offlineReady, setOfflineReady] = useState(false)
   const [isOnline, setIsOnline] = useState(getNavigatorOnLine)
   const [isStandalone, setIsStandalone] = useState(getStandaloneMatch)
+  const [updateBannerVisible, setUpdateBannerVisible] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -71,19 +72,21 @@ export function PwaCard() {
 
     let isMounted = true
     let offlineReadyTimer: number | undefined
-    let reloading = false
-
-    const handleControllerChange = () => {
-      if (reloading) {
-        return
-      }
-
-      reloading = true
-      window.location.reload()
-    }
 
     const registerServiceWorker = async () => {
       const registration = await navigator.serviceWorker.register('/sw.js')
+
+      const syncManager = (registration as ServiceWorkerRegistration & {
+        sync?: { register: (tag: string) => Promise<void> }
+      }).sync
+
+      if (syncManager) {
+        try {
+          await syncManager.register('titan-sync-queue')
+        } catch {
+          // Sync may fail on unsupported/privacy-restricted browsers.
+        }
+      }
 
       const trackWorker = (worker: ServiceWorker | null) => {
         if (!worker) {
@@ -97,6 +100,7 @@ export function PwaCard() {
 
           if (navigator.serviceWorker.controller) {
             setWaitingWorker(worker)
+            setUpdateBannerVisible(true)
             return
           }
 
@@ -111,6 +115,7 @@ export function PwaCard() {
 
       if (registration.waiting) {
         setWaitingWorker(registration.waiting)
+        setUpdateBannerVisible(true)
       }
 
       trackWorker(registration.installing)
@@ -119,7 +124,6 @@ export function PwaCard() {
       })
     }
 
-    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange)
     void registerServiceWorker()
 
     return () => {
@@ -127,10 +131,6 @@ export function PwaCard() {
       if (offlineReadyTimer) {
         window.clearTimeout(offlineReadyTimer)
       }
-      navigator.serviceWorker.removeEventListener(
-        'controllerchange',
-        handleControllerChange,
-      )
     }
   }, [])
 
@@ -156,10 +156,20 @@ export function PwaCard() {
 
   function handleUpdate() {
     waitingWorker?.postMessage({ type: 'SKIP_WAITING' })
+    setUpdateBannerVisible(false)
+    window.location.reload()
   }
 
   return (
     <section className="sidebar-panel pwa-card" aria-live="polite">
+      {updateBannerVisible ? (
+        <div className="update-banner" role="status" aria-live="polite">
+          <span>Update available</span>
+          <button className="button button-primary button-small" onClick={handleUpdate} type="button">
+            Refresh now
+          </button>
+        </div>
+      ) : null}
       <div className="pwa-card-head">
         <p className="eyebrow">PWA mode</p>
         <span

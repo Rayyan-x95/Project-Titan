@@ -15,21 +15,34 @@ export function GoogleAnalytics() {
       return
     }
 
-    const script = document.createElement('script')
-    script.async = true
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`
-    document.head.appendChild(script)
+    let script: HTMLScriptElement | null = null
+    let cancelled = false
 
-    window.dataLayer = window.dataLayer || []
-    window.gtag = (...args: unknown[]) => {
-      window.dataLayer.push(args)
+    const injectScript = () => {
+      if (cancelled) {
+        return
+      }
+
+      script = document.createElement('script')
+      script.async = true
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`
+      document.head.appendChild(script)
+
+      window.dataLayer = window.dataLayer || []
+      window.gtag = (...args: unknown[]) => {
+        window.dataLayer.push(args)
+      }
+
+      window.gtag('js', new Date())
+      window.gtag('config', MEASUREMENT_ID, { send_page_view: true })
     }
 
-    window.gtag('js', new Date())
-    window.gtag('config', MEASUREMENT_ID, { send_page_view: true })
+    const timer = window.setTimeout(injectScript, 2000)
 
     return () => {
-      script.remove()
+      cancelled = true
+      window.clearTimeout(timer)
+      script?.remove()
     }
   }, [])
 

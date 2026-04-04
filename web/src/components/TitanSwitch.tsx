@@ -13,19 +13,20 @@ export function TitanSwitch({
   disabled = false,
   className,
 }: TitanSwitchProps) {
+  const stateLabel = checked ? 'On' : 'Off'
+
   return (
     <div className={`titan-switch-row ${className ?? ''}`.trim()}>
       <span className="field-label">{label}</span>
-      <button
-        aria-checked={checked ? 'true' : 'false'}
+      <input
+        aria-label={`${label}: ${stateLabel}`}
         className={`titan-switch ${checked ? 'checked' : ''}`}
+        checked={checked}
         disabled={disabled}
-        onClick={() => onChange(!checked)}
-        role="switch"
-        type="button"
-      >
-        <span className="titan-switch-thumb" aria-hidden="true" />
-      </button>
+        onChange={(event) => onChange(event.target.checked)}
+        title={`${label}: ${stateLabel}`}
+        type="checkbox"
+      />
     </div>
   )
 }

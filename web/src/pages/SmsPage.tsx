@@ -9,6 +9,8 @@ export function SmsPage() {
   const { approveTransaction, deleteTransaction, ingestTransaction } = useTitanActions()
   const pending = state.transactions.filter((transaction) => !transaction.isApproved)
   const [message, setMessage] = useState('')
+  const [parseError, setParseError] = useState('')
+  const [showSuccess, setShowSuccess] = useState(false)
 
   return (
     <div className="page">
@@ -22,6 +24,7 @@ export function SmsPage() {
         <label className="field field-wide">
           <span>SMS alert text</span>
           <textarea
+            className={parseError ? 'field-error-shake' : ''}
             onChange={(event) => setMessage(event.target.value)}
             placeholder="Transaction alert: INR 240 spent at Metro Mart"
             rows={4}
@@ -29,13 +32,23 @@ export function SmsPage() {
           />
         </label>
 
+        {parseError ? <p className="inline-feedback inline-feedback-error">{parseError}</p> : null}
+        {showSuccess ? (
+          <p className="inline-feedback inline-feedback-success success-pop" aria-live="polite">
+            SMS alert ingested.
+          </p>
+        ) : null}
+
         <div className="button-row">
           <button
             className="button button-primary"
             onClick={() => {
+              setParseError('')
+              setShowSuccess(false)
               const parsed = parseSmsAlert(message)
 
               if (!parsed) {
+                setParseError('Titan could not parse this SMS. Include amount and merchant name.')
                 return
               }
 
@@ -45,6 +58,7 @@ export function SmsPage() {
                 type: 'SMS',
               })
               setMessage('')
+              setShowSuccess(true)
             }}
             type="button"
           >

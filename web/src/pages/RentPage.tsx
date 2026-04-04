@@ -25,7 +25,7 @@ export function RentPage() {
       <section className="glass-panel form-panel">
         {!hasCurrentUser ? (
           <p className="muted-copy">
-            Save your name in the sidebar first so Titan can create the rent split.
+            Set your profile name at the top so Titan can create the rent split.
           </p>
         ) : null}
         <label className="field">
