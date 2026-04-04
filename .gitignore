@@ -51,6 +51,11 @@ coverage/
 .nyc_output/
 *.tsbuildinfo
 
+# Vite / PWA / cache artifacts
+.cache/
+.sw/
+service-worker.js
+
 # Vite / Next / Expo output
 .next/
 out/
