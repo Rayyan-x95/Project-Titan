@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+     "prebuild": "node scripts/generate-sitemap.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "perf:lighthouse": "npx @lhci/cli autorun --config=./lighthouserc.json"

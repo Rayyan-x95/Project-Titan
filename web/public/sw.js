@@ -53,6 +53,12 @@ self.addEventListener('fetch', (event) => {
   }
 
   const url = new URL(request.url)
+
+    // Always bypass service worker for SEO files (let network serve them)
+    if (url.pathname === '/sitemap.xml' || url.pathname === '/robots.txt') {
+      return
+    }
+
   const isSameOrigin = url.origin === self.location.origin
   const isExternalFontRequest = FONT_ORIGINS.includes(url.origin)
 
