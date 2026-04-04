@@ -2,7 +2,6 @@ import { titanDB } from '../lib/indexeddb'
 import { emptyState } from '../data/emptyState'
 import type { TitanState } from '../types'
 
-const STORAGE_KEY = 'titan-web-state-v2'
 const SAVE_DEBOUNCE_MS = 250
 
 let cachedState: TitanState | null = null
@@ -17,37 +16,7 @@ export interface TitanBackend {
   clearState(): Promise<void>
 }
 
-function getLocalStorage() {
-  try {
-    return window.localStorage
-  } catch {
-    return null
-  }
-}
-
-function normalizeLocalState(state: unknown) {
-  if (!state || typeof state !== 'object') {
-    return emptyState
-  }
-
-  return state as TitanState
-}
-
 async function readStoredState() {
-  const storage = getLocalStorage()
-
-  if (storage) {
-    const saved = storage.getItem(STORAGE_KEY)
-
-    if (saved) {
-      try {
-        return normalizeLocalState(JSON.parse(saved))
-      } catch {
-        return emptyState
-      }
-    }
-  }
-
   return titanDB.loadState()
 }
 
@@ -58,12 +27,6 @@ async function flushLatestState() {
 
   const stateToPersist = latestPendingState
   latestPendingState = null
-
-  const storage = getLocalStorage()
-
-  if (storage) {
-    storage.setItem(STORAGE_KEY, JSON.stringify(stateToPersist))
-  }
 
   await titanDB.saveState(stateToPersist)
 }
@@ -115,8 +78,6 @@ export const titanBackend: TitanBackend = {
       saveTimer = null
     }
 
-    const storage = getLocalStorage()
-    storage?.removeItem(STORAGE_KEY)
     await titanDB.clearState()
   },
 }

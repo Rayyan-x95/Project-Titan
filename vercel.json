@@ -12,8 +12,8 @@
           "value": "titan-web.vercel.app"
         }
       ],
-      "destination": "https://titanapp.qzz.io/$1",
-      "permanent": true
+      "destination": "https://titanapp.qzz.io/",
+      "permanent": false
     }
   ],
   "headers": [

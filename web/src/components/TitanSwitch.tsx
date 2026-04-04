@@ -16,10 +16,9 @@ export function TitanSwitch({
   const stateLabel = checked ? 'On' : 'Off'
 
   return (
-    <div className={`titan-switch-row ${className ?? ''}`.trim()}>
+    <label className={`titan-switch-row ${className ?? ''}`.trim()}>
       <span className="field-label">{label}</span>
       <input
-        aria-label={`${label}: ${stateLabel}`}
         className={`titan-switch ${checked ? 'checked' : ''}`}
         checked={checked}
         disabled={disabled}
@@ -27,6 +26,6 @@ export function TitanSwitch({
         title={`${label}: ${stateLabel}`}
         type="checkbox"
       />
-    </div>
+    </label>
   )
 }

@@ -15,6 +15,11 @@ import type {
   Transaction,
 } from '../types'
 
+// Configuration constants
+export const OVERSPENDING_THRESHOLD_RUPEES = 10000
+export const MAX_AMOUNT_PAISE = 10_000_000_00
+export const MAX_AMOUNT_RUPEES = 10_000_000
+
 const paiseFormatter = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -477,7 +482,7 @@ export function isOverspending(splits: Split[], transactions: Transaction[]) {
     .filter((transaction) => transaction.isApproved && transaction.timestamp >= weekAgo)
     .reduce((total, transaction) => total + transaction.amountRupees, 0)
 
-  return splitRupees + transactionRupees > 10000
+  return splitRupees + transactionRupees > OVERSPENDING_THRESHOLD_RUPEES
 }
 
 export function getAlwaysPaysFirstPercentage(splits: Split[], currentUser: string) {

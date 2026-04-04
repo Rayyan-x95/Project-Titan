@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 
 export type TitanDropdownOption = {
   label: string
@@ -29,6 +29,9 @@ export function TitanDropdown({
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const baseId = useId()
+  const labelId = `${baseId}-label`
+  const listboxId = `${baseId}-listbox`
 
   const selectedOption = useMemo(
     () => options.find((option) => option.value === value),
@@ -129,9 +132,13 @@ export function TitanDropdown({
 
   return (
     <div ref={rootRef} className={`titan-dropdown ${className ?? ''}`.trim()}>
-      <span className="field-label">{label}</span>
+      <span className="field-label" id={labelId}>
+        {label}
+      </span>
       <button
         aria-haspopup="listbox"
+        aria-controls={listboxId}
+        aria-label={`${label}: ${selectedOption?.label ?? placeholder}${isOpen ? ' (open)' : ''}`}
         className="titan-dropdown-trigger"
         disabled={disabled}
         onClick={() => setIsOpen((current) => !current)}
@@ -146,7 +153,13 @@ export function TitanDropdown({
       </button>
 
       {isOpen ? (
-        <div className="titan-dropdown-menu" onKeyDown={handleListboxKeyDown} role="listbox" aria-label={label}>
+        <div
+          className="titan-dropdown-menu"
+          onKeyDown={handleListboxKeyDown}
+          role="listbox"
+          aria-labelledby={labelId}
+          id={listboxId}
+        >
           {options.map((option) => {
             const isSelected = option.value === value
             const optionIndex = options.findIndex((item) => item.value === option.value)
@@ -165,10 +178,12 @@ export function TitanDropdown({
                   optionRefs.current[optionIndex] = element
                 }}
                 role="option"
+                data-selected={isSelected ? 'true' : 'false'}
                 tabIndex={isHighlighted ? 0 : -1}
                 type="button"
               >
                 <span>{option.label}</span>
+                {isSelected ? <span className="sr-only">Selected</span> : null}
                 {isSelected ? <span className="titan-dropdown-check">✓</span> : null}
               </button>
             )

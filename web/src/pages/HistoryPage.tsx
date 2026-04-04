@@ -42,7 +42,7 @@ function downloadFile(filename: string, contents: string, mimeType: string) {
 }
 
 function toCsvValue(value: string | number | boolean) {
-  return `"${String(value).replaceAll('"', '""')}"`
+  return `"${String(value).replaceAll('"', '""').replaceAll('\n', ' ').replaceAll('\r', ' ')}"`
 }
 
 export default function HistoryPage() {

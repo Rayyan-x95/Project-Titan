@@ -1,5 +1,9 @@
 import { useContext } from 'react'
-import { TitanActionsContext, TitanStateContext } from './titan-context'
+import {
+  TitanActionsContext,
+  TitanCurrentUserContext,
+  TitanStateContext,
+} from './titan-context'
 
 export function useTitanState() {
   const state = useContext(TitanStateContext)
@@ -19,6 +23,16 @@ export function useTitanActions() {
   }
 
   return actions
+}
+
+export function useTitanCurrentUser() {
+  const currentUser = useContext(TitanCurrentUserContext)
+
+  if (currentUser === null) {
+    throw new Error('useTitanCurrentUser must be used within TitanProvider')
+  }
+
+  return currentUser
 }
 
 export function useTitan() {

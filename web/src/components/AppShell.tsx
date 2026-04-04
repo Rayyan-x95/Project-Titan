@@ -1,92 +1,125 @@
-import { AnimatePresence, m, useReducedMotion } from 'framer-motion'
-import { NavLink, useLocation, useOutlet } from 'react-router-dom'
-import { useState } from 'react'
-import { CurrencyToolbar } from '../features/currency/components/CurrencyToolbar'
-import { OfflineStatusBar } from '../features/offline-sync/components/OfflineStatusBar'
-import { PwaCard } from './PwaCard'
-import { useTitanActions, useTitanState } from '../state/useTitan'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useTitan } from '../state/titan-context'
+import { useDarkMode } from '../lib/utils'
 
-const navItems = [
-  { path: '/', label: 'HOME' },
-  { path: '/cash', label: 'ARSENAL' },
-  { path: '/history', label: 'LEDGER' },
-  { path: '/insights', label: 'PULSE' },
-]
-
-export default function AppShell() {
+function AppShell() {
+  const navigate = useNavigate()
   const location = useLocation()
-  const outlet = useOutlet()
-  const shouldReduceMotion = useReducedMotion()
-  const state = useTitanState()
-  const { setCurrentUser } = useTitanActions()
-  const [showProfile, setShowProfile] = useState(true)
+  const { isAuthenticated } = useTitan()
+  const { isDark, toggle } = useDarkMode()
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileMenuOpen(false)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const handleLogout = () => {
+    setIsMobileMenuOpen(false)
+    navigate('/login')
+  }
 
   return (
-    <div className="app-container">
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <div className="ambient-light-1" />
-      <div className="ambient-light-2" />
-      <header className="shell-brand" aria-label="Titan app">
-        <img className="shell-brand-wordmark" src="/titan_logo_full_transparent.png" alt="Titan logo" />
-      </header>
-      {showProfile && (
-        <section className="profile-setup glass-panel" aria-label="Profile setup">
-          <div className="profile-header">
-            <h2 className="profile-title">Setup</h2>
-            <button
-              className="profile-close-btn"
-              onClick={() => setShowProfile(false)}
-              aria-label="Close profile section"
-              title="Minimize profile setup"
+    <div className={`app-shell ${isDark ? 'dark' : ''}`}>
+      <nav className="app-shell-nav">
+        <div className="nav-container">
+          <div className="logo">
+            <span className="logo-text">Project Titan</span>
+          </div>
+          <div className="nav-links">
+            <a
+              href="/"
+              className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
             >
-              ×
+              Home
+            </a>
+            <a
+              href="/dashboard"
+              className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
+            >
+              Dashboard
+            </a>
+            {isAuthenticated && (
+              <>
+                <a
+                  href="/profile"
+                  className={`nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
+                >
+                  Profile
+                </a>
+                <a
+                  href="/settings"
+                  className={`nav-link ${location.pathname === '/settings' ? 'active' : ''}`}
+                >
+                  Settings
+                </a>
+              </>
+            )}
+          </div>
+          <button className="mobile-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+
+        <div className={`auth-buttons ${isAuthenticated ? 'logged-in' : ''}`}>
+          <button className={`auth-btn logout ${isMobileMenuOpen ? 'mobile-hidden' : ''}`}>
+            Logout
+          </button>
+        </div>
+      </nav>
+
+      <main className="app-shell-main">
+        <header className="app-shell-header">
+          <h1>Welcome to Project Titan</h1>
+          <p className="subtitle">Your complete project management platform</p>
+        </header>
+
+        <div className={`dashboard ${location.pathname === '/dashboard' ? 'active' : ''}`}>
+          <div className="dashboard-grid">
+            <div className="dashboard-card">
+              <div className="dashboard-icon">📊</div>
+              <h3>Dashboard Overview</h3>
+              <p>View your project analytics and insights</p>
+            </div>
+            {isAuthenticated && (
+              <div className="dashboard-card">
+                <div className="dashboard-icon">👤</div>
+                <h3>My Projects</h3>
+                <p>Manage your assigned projects</p>
+              </div>
+            )}
+          </div>
+
+          <div className="quick-actions">
+            <button className="quick-btn">
+              <span className="btn-icon">📁</span>
+              <span>Add New Project</span>
+            </button>
+            <button className="quick-btn">
+              <span className="btn-icon">📝</span>
+              <span>View Details</span>
             </button>
           </div>
-          <label className="field profile-setup-field">
-            <span>Profile name</span>
-            <input
-              aria-label="Your profile name"
-              maxLength={28}
-              onChange={(event) => setCurrentUser(event.target.value)}
-              placeholder="Enter your name to unlock splits"
-              value={state.currentUser}
-            />
-          </label>
-        </section>
-      )}
-      <OfflineStatusBar />
-      <CurrencyToolbar />
-      <main id="main" className="screen-content">
-        <AnimatePresence mode="wait" initial={false}>
-          <m.div
-            key={location.pathname}
-            className="route-motion-wrap"
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
-          >
-            {outlet}
-          </m.div>
-        </AnimatePresence>
-        <PwaCard />
+        </div>
       </main>
-      <nav className="floating-nav glass-surface-3" aria-label="Primary">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            end={item.path === '/'}
-            to={item.path}
-            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-          >
-            <div className="nav-label">{item.label}</div>
-          </NavLink>
-        ))}
-      </nav>
+
+      {isMobileMenuOpen && (
+        <aside className="mobile-menu">
+          <div className="mobile-nav">
+            <p className="mobile-logout">Logout</p>
+          </div>
+        </aside>
+      )}
     </div>
   )
 }
 
-
+export { AppShell }

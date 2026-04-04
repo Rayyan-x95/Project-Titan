@@ -34,7 +34,7 @@ export function GoogleAnalytics() {
       }
 
       window.gtag('js', new Date())
-      window.gtag('config', MEASUREMENT_ID, { send_page_view: true })
+      window.gtag('config', MEASUREMENT_ID, { send_page_view: false })
     }
 
     const timer = window.setTimeout(injectScript, 2000)

@@ -12,6 +12,7 @@ import {
   getParticipantSettledPaise,
   getParticipantSharePaise,
   getSettlementParticipantId,
+  MAX_AMOUNT_PAISE,
 } from '../lib/finance'
 import { useTitanActions, useTitanState } from '../state/useTitan'
 
@@ -27,7 +28,6 @@ export function SettlementPage() {
   const { settleFull, settlePartial } = useTitanActions()
   const split = state.splits.find((item) => item.id === splitId)
   const [amount, setAmount] = useState('')
-  const MAX_AMOUNT_PAISE = 10_000_000_00
 
   if (!split || !personId) {
     return (
@@ -145,7 +145,7 @@ export function SettlementPage() {
               }
 
               const amountPaise = Math.round(parsedAmount * 100)
-              if (amountPaise > 0 && amountPaise <= MAX_AMOUNT_PAISE) {
+              if (amountPaise > 0 && amountPaise <= MAX_AMOUNT_PAISE && amountPaise <= participantOutstandingPaise) {
                 settlePartial(split.id, participantId, amountPaise)
                 navigate(-1)
               }

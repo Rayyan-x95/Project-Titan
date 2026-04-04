@@ -24,7 +24,11 @@ export function ShareLinkButton({ createLink, className }: ShareLinkButtonProps)
       <button className={className ?? 'button button-secondary'} onClick={handleClick} type="button">
         Copy share link
       </button>
-      {feedback ? <p className="inline-feedback inline-feedback-success">{feedback}</p> : null}
+      {feedback ? (
+        <p className="inline-feedback inline-feedback-success" role="status" aria-live="polite">
+          {feedback}
+        </p>
+      ) : null}
     </div>
   )
 }

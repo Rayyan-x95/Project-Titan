@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'titan-pwa-v8'
+const CACHE_VERSION = 'titan-pwa-v9'
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`
 const NAVIGATION_CACHE = `${CACHE_VERSION}-navigation`
@@ -53,6 +53,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   const url = new URL(request.url)
+  const shouldCacheNavigation = url.search.length === 0
 
     // Always bypass service worker for SEO files (let network serve them)
     if (url.pathname === '/sitemap.xml' || url.pathname === '/robots.txt') {
@@ -64,11 +65,10 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      handleNavigationRequest(event, request).catch(async () => {
+      handleNavigationRequest(event, request, shouldCacheNavigation).catch(async () => {
         const appShellCache = await caches.open(APP_SHELL_CACHE)
-        const navigationCache = await caches.open(NAVIGATION_CACHE)
         return (
-          (await navigationCache.match(request)) ??
+          (shouldCacheNavigation ? await (await caches.open(NAVIGATION_CACHE)).match(request) : null) ??
           (await appShellCache.match('/offline.html')) ??
           (await appShellCache.match('/index.html')) ??
           (await appShellCache.match('/')) ??
@@ -111,22 +111,26 @@ self.addEventListener('sync', (event) => {
   )
 })
 
-async function handleNavigationRequest(event, request) {
-  const runtimeCache = await caches.open(NAVIGATION_CACHE)
+async function handleNavigationRequest(event, request, shouldCacheNavigation = true) {
+  const runtimeCache = shouldCacheNavigation ? await caches.open(NAVIGATION_CACHE) : null
 
   const preloadResponse = await event.preloadResponse
 
   if (preloadResponse) {
-    runtimeCache.put(request, preloadResponse.clone())
+    if (runtimeCache) {
+      runtimeCache.put(request, preloadResponse.clone())
+    }
     return preloadResponse
   }
 
   try {
     const response = await fetch(request)
-    runtimeCache.put(request, response.clone())
+    if (runtimeCache) {
+      runtimeCache.put(request, response.clone())
+    }
     return response
   } catch {
-    const cachedResponse = await runtimeCache.match(request)
+    const cachedResponse = runtimeCache ? await runtimeCache.match(request) : null
 
     if (cachedResponse) {
       return cachedResponse

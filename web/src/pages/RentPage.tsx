@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
-import { formatDate, formatRupees } from '../lib/finance'
+import { formatDate, formatRupees, sanitizeParticipantList } from '../lib/finance'
 import { useTitanActions, useTitanState } from '../state/useTitan'
 
 export function RentPage() {
@@ -71,10 +71,9 @@ export function RentPage() {
               }
 
               const amountPaise = Math.round(parsedAmount * 100)
-              const memberList = members
-                .split(',')
-                .map((member) => member.trim())
-                .filter(Boolean)
+              const memberList = sanitizeParticipantList(
+                members.split(',').map((member) => member.trim()).filter(Boolean),
+              )
 
               if (amountPaise > 0 && amountPaise <= MAX_AMOUNT_PAISE && memberList.length > 0) {
                 triggerRentSplit(amountPaise, memberList, recurring)

@@ -11,6 +11,7 @@ export function SmsPage() {
   const [message, setMessage] = useState('')
   const [parseError, setParseError] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
+  const [isIngesting, setIsIngesting] = useState(false)
 
   return (
     <div className="page">
@@ -42,13 +43,16 @@ export function SmsPage() {
         <div className="button-row">
           <button
             className="button button-primary"
+            disabled={isIngesting}
             onClick={() => {
               setParseError('')
               setShowSuccess(false)
+              setIsIngesting(true)
               const parsed = parseSmsAlert(message)
 
               if (!parsed) {
                 setParseError('Titan could not parse this SMS. Include amount and merchant name.')
+                setIsIngesting(false)
                 return
               }
 
@@ -59,6 +63,7 @@ export function SmsPage() {
               })
               setMessage('')
               setShowSuccess(true)
+              setIsIngesting(false)
             }}
             type="button"
           >

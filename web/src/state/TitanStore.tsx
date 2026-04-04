@@ -24,12 +24,12 @@ import type {
 } from '../types'
 import {
   TitanActionsContext,
+  TitanCurrentUserContext,
   TitanStateContext,
   type TitanActions,
 } from './titan-context'
 import { enqueueOfflineOperation } from '../features/offline-sync/services/offlineQueue'
 
-const STORAGE_KEY = 'titan-web-state-v2'
 const RENT_INTERVAL_DAYS = 30
 
 type AddSplitPayload = {
@@ -64,14 +64,6 @@ type Action =
   | { type: 'DELETE_EMI'; emiId: string }
   | { type: 'TRIGGER_RENT_SPLIT'; amountPaise: number; members: string[]; recurring: boolean }
   | { type: 'RUN_DUE_RENT_SCHEDULES' }
-
-function getLocalStorage() {
-  try {
-    return window.localStorage
-  } catch {
-    return null
-  }
-}
 
 function createId(prefix: string) {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -164,18 +156,7 @@ function normalizeState(state: TitanState): TitanState {
 }
 
 function getInitialState() {
-  const storage = getLocalStorage()
-  const saved = storage?.getItem(STORAGE_KEY)
-
-  if (!saved) {
-    return emptyState
-  }
-
-  try {
-    return normalizeState(JSON.parse(saved) as TitanState)
-  } catch {
-    return emptyState
-  }
+  return emptyState
 }
 
 function buildSplitFromPayload(
@@ -867,7 +848,9 @@ export function TitanProvider({ children }: { children: ReactNode }) {
 
   return (
     <TitanStateContext.Provider value={state}>
-      <TitanActionsContext.Provider value={actions}>{children}</TitanActionsContext.Provider>
+      <TitanCurrentUserContext.Provider value={state.currentUser}>
+        <TitanActionsContext.Provider value={actions}>{children}</TitanActionsContext.Provider>
+      </TitanCurrentUserContext.Provider>
     </TitanStateContext.Provider>
   )
 }
