@@ -1,5 +1,10 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
+import { CurrencyAmount } from '../features/currency/components/CurrencyAmount'
+import { QRShareModal } from '../features/qr-share/components/QRShareModal'
+import { useQRShare } from '../features/qr-share/hooks/useQRShare'
+import { createShareLink } from '../features/share-links/services/shareLinkService'
+import { ShareLinkButton } from '../features/share-links/components/ShareLinkButton'
 import {
   formatPaise,
   getGroupBalances,
@@ -30,6 +35,12 @@ export function GroupDetailPage() {
   const balances = getGroupBalances(state.splits, group.id)
   const optimized = simplifyGroupSettlement(balances)
   const relatedSplits = state.splits.filter((split) => split.groupId === group.id)
+  const inviteLink = createShareLink('group-share', '/expense/new', {
+    groupId: group.id,
+    groupName: group.name,
+    participants: group.members.join(', '),
+  })
+  const { open, imageUrl, openModal, closeModal } = useQRShare(inviteLink)
 
   return (
     <div className="page">
@@ -55,6 +66,10 @@ export function GroupDetailPage() {
             >
               Delete group
             </button>
+            <button className="button button-secondary" onClick={openModal} type="button">
+              Group QR
+            </button>
+            <ShareLinkButton createLink={() => inviteLink} />
           </div>
         }
       />
@@ -79,6 +94,9 @@ export function GroupDetailPage() {
                     <span>pays {payment.to}</span>
                   </div>
                   <strong>{formatPaise(payment.amountPaise)}</strong>
+                  <span className="muted-copy">
+                    <CurrencyAmount amountInInr={payment.amountPaise / 100} />
+                  </span>
                 </article>
               ))
             )}
@@ -135,6 +153,15 @@ export function GroupDetailPage() {
           ))}
         </div>
       </section>
+
+      <QRShareModal
+        open={open}
+        title="Group expense invite"
+        subtitle="Scan to open this group expense flow"
+        scanValue={inviteLink}
+        imageUrl={imageUrl}
+        onClose={closeModal}
+      />
     </div>
   )
 }

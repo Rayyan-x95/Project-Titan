@@ -1,8 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { TitanDropdown } from '../components/TitanDropdown'
 import { TitanSwitch } from '../components/TitanSwitch'
 import { PageHeader } from '../components/PageHeader'
+import { ReceiptScanPanel } from '../features/receipt-scan/components/ReceiptScanPanel'
+import { ShareLinkButton } from '../features/share-links/components/ShareLinkButton'
+import { parseShareLinkValue } from '../features/share-links/services/shareLinkService'
+import { createShareLink } from '../features/share-links/services/shareLinkService'
 import {
   findGroup,
   getKnownPeople,
@@ -37,6 +41,11 @@ export function AddExpensePage() {
   const defaultGroupId = searchParams.get('group') ?? ''
   const editSplitId = searchParams.get('edit') ?? ''
   const editSplit = state.splits.find((split) => split.id === editSplitId)
+  const sharedPayload = parseShareLinkValue(searchParams.get('data'))
+  const sharedDraft =
+    sharedPayload && sharedPayload.type === 'expense-draft' && !editSplit
+      ? sharedPayload.data
+      : null
   const availableGroups = state.groups.filter(
     (group) => group.members.includes(state.currentUser) || group.id === editSplit?.groupId,
   )
@@ -48,12 +57,14 @@ export function AddExpensePage() {
       deleteSplit={deleteSplit}
       editSplitId={editSplit?.id}
       hasCurrentUser={hasCurrentUser}
-      initialAmount={editSplit ? (editSplit.amountPaise / 100).toFixed(2) : ''}
+      initialAmount={editSplit ? (editSplit.amountPaise / 100).toFixed(2) : String(sharedDraft?.amount ?? '')}
+      initialDescription={editSplit ? editSplit.description : String(sharedDraft?.description ?? '')}
       initialGroupId={editSplit?.groupId ?? defaultGroupId}
-      initialParticipants={editSplit?.participants.join(', ')}
+      initialParticipants={editSplit?.participants.join(', ') ?? String(sharedDraft?.participants ?? '')}
       navigate={navigate}
       onSave={addSplit}
       onUpdate={updateSplit}
+      sharedPayloadType={sharedPayload?.type}
       state={state}
     />
   )
@@ -65,6 +76,7 @@ type ExpenseEditorProps = {
   editSplitId?: string
   hasCurrentUser: boolean
   initialAmount: string
+  initialDescription: string
   initialGroupId: string
   initialParticipants: string | undefined
   navigate: ReturnType<typeof useNavigate>
@@ -81,6 +93,7 @@ type ExpenseEditorProps = {
     participants: string[]
     groupId?: string
   }) => void
+  sharedPayloadType?: string
   state: TitanState
 }
 
@@ -90,20 +103,26 @@ function ExpenseEditor({
   editSplitId,
   hasCurrentUser,
   initialAmount,
+  initialDescription,
   initialGroupId,
   initialParticipants,
   navigate,
   onSave,
   onUpdate,
+  sharedPayloadType,
   state,
 }: ExpenseEditorProps) {
   const [amount, setAmount] = useState(initialAmount)
-  const [description, setDescription] = useState('')
+  const [description, setDescription] = useState(initialDescription)
   const [groupId, setGroupId] = useState(initialGroupId)
   const [manualParticipants, setManualParticipants] = useState<string | null>(
     initialParticipants ?? null,
   )
   const [showSuggestions, setShowSuggestions] = useState(true)
+  const [formError, setFormError] = useState('')
+  const [invalidField, setInvalidField] = useState<'amount' | 'participants' | null>(null)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const navigateTimer = useRef<number | null>(null)
 
   const selectedGroupId = availableGroups.some((group) => group.id === groupId)
     ? groupId
@@ -118,16 +137,34 @@ function ExpenseEditor({
     availableGroups,
   )
   const participants = manualParticipants ?? autoParticipants
+  const expenseDraftLink = createShareLink('expense-draft', '/expense/new', {
+    amount,
+    description,
+    participants,
+    groupId: selectedGroup?.id,
+  })
 
   function setParticipants(value: string) {
     setManualParticipants(value === autoParticipants ? null : value)
   }
 
+  useEffect(() => {
+    return () => {
+      if (navigateTimer.current) {
+        window.clearTimeout(navigateTimer.current)
+      }
+    }
+  }, [])
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setFormError('')
+    setInvalidField(null)
 
     const parsedAmount = parseAmountInput(amount)
     if (parsedAmount === null) {
+      setInvalidField('amount')
+      setFormError('Enter a valid amount before saving.')
       return
     }
 
@@ -136,7 +173,15 @@ function ExpenseEditor({
     const participantList = sanitizeParticipantList(participants.split(','), state.currentUser)
       .filter((participant) => (selectedGroup ? selectedGroup.members.includes(participant) : true))
 
-    if (amountPaise <= 0 || amountPaise > MAX_AMOUNT_PAISE || participantList.length === 0) {
+    if (amountPaise <= 0 || amountPaise > MAX_AMOUNT_PAISE) {
+      setInvalidField('amount')
+      setFormError('Amount must be greater than 0 and within Titan limits.')
+      return
+    }
+
+    if (participantList.length === 0) {
+      setInvalidField('participants')
+      setFormError('Add at least one participant to split this expense.')
       return
     }
 
@@ -153,12 +198,16 @@ function ExpenseEditor({
       onSave(payload)
     }
 
-    if (selectedGroup) {
-      navigate(`/groups/${selectedGroup.id}`)
-      return
-    }
+    setShowSuccess(true)
 
-    navigate('/')
+    navigateTimer.current = window.setTimeout(() => {
+      if (selectedGroup) {
+        navigate(`/groups/${selectedGroup.id}`)
+        return
+      }
+
+      navigate('/')
+    }, 180)
   }
 
   return (
@@ -170,12 +219,17 @@ function ExpenseEditor({
       />
 
       <form className="form-panel glass-panel" onSubmit={handleSubmit}>
-        {!hasCurrentUser ? (
-          <p className="muted-copy">
-            Save your name in the sidebar first so Titan knows who is paying.
+        {sharedPayloadType ? (
+          <p className="inline-feedback inline-feedback-success" aria-live="polite">
+            Shared draft loaded. Review and save.
           </p>
         ) : null}
-        <label className="field">
+        {!hasCurrentUser ? (
+          <p className="muted-copy">
+            Set your profile name at the top so Titan knows who is paying.
+          </p>
+        ) : null}
+        <label className={`field ${invalidField === 'amount' ? 'field-invalid field-error-shake' : ''}`}>
           <span>Amount</span>
           <input
             disabled={!hasCurrentUser}
@@ -210,7 +264,7 @@ function ExpenseEditor({
           value={selectedGroupId}
         />
 
-        <label className="field field-wide">
+        <label className={`field field-wide ${invalidField === 'participants' ? 'field-invalid field-error-shake' : ''}`}>
           <span>Participants</span>
           <textarea
             disabled={!hasCurrentUser}
@@ -256,6 +310,13 @@ function ExpenseEditor({
           </div>
         ) : null}
 
+        {formError ? <p className="inline-feedback inline-feedback-error">{formError}</p> : null}
+        {showSuccess ? (
+          <p className="inline-feedback inline-feedback-success success-pop" aria-live="polite">
+            Expense saved.
+          </p>
+        ) : null}
+
         <div className="button-row">
           <button className="button button-secondary" onClick={() => navigate(-1)} type="button">
             Cancel
@@ -276,7 +337,21 @@ function ExpenseEditor({
             {editSplitId ? 'Update split' : 'Save split'}
           </button>
         </div>
+
+        <ShareLinkButton createLink={() => expenseDraftLink} />
       </form>
+
+      <ReceiptScanPanel
+        onApply={({ amount: scannedAmount, merchant }) => {
+          if (scannedAmount) {
+            setAmount(scannedAmount)
+          }
+
+          if (merchant) {
+            setDescription((current) => current || merchant)
+          }
+        }}
+      />
     </div>
   )
 }

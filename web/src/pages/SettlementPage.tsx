@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { QRShareModal } from '../features/qr-share/components/QRShareModal'
+import { useQRShare } from '../features/qr-share/hooks/useQRShare'
+import { createQrSharePayload } from '../features/qr-share/services/qrShareService'
+import { createShareLink } from '../features/share-links/services/shareLinkService'
 import { PageHeader } from '../components/PageHeader'
 import {
   formatPaise,
@@ -60,6 +64,17 @@ export function SettlementPage() {
       participantOutstandingPaise,
     )} pending between you and ${personId}.`,
   )
+  const shareableUrl = createShareLink('summary', '/settlements/' + split.id, {
+    person: personId,
+    description: split.description,
+    pendingPaise: participantOutstandingPaise,
+  })
+  const qrPayload = createQrSharePayload(
+    'Titan settlement summary',
+    `${split.description}: ${formatPaise(participantOutstandingPaise)} pending`,
+    shareableUrl,
+  )
+  const { open, imageUrl, openModal, closeModal } = useQRShare(shareableUrl || qrPayload)
   const shareLabel =
     split.paidBy === state.currentUser ? `${personId}'s share` : 'Your share'
   const settledLabel =
@@ -139,6 +154,9 @@ export function SettlementPage() {
           >
             Record partial
           </button>
+          <button className="button button-secondary" onClick={openModal} type="button">
+            Share as QR
+          </button>
         </div>
 
         <a
@@ -148,6 +166,15 @@ export function SettlementPage() {
           Share reminder
         </a>
       </section>
+
+      <QRShareModal
+        open={open}
+        title="Settlement summary"
+        subtitle="Scan to view this settlement"
+        scanValue={shareableUrl}
+        imageUrl={imageUrl}
+        onClose={closeModal}
+      />
     </div>
   )
 }

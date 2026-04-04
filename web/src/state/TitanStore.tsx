@@ -27,6 +27,7 @@ import {
   TitanStateContext,
   type TitanActions,
 } from './titan-context'
+import { enqueueOfflineOperation } from '../features/offline-sync/services/offlineQueue'
 
 const STORAGE_KEY = 'titan-web-state-v2'
 const RENT_INTERVAL_DAYS = 30
@@ -716,16 +717,31 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       })
     },
     addSplit(payload) {
+      enqueueOfflineOperation({
+        type: 'ADD_SPLIT',
+        entityKey: `split:${payload.groupId ?? 'ungrouped'}:${payload.description}`,
+        payload: payload as unknown as Record<string, unknown>,
+      })
       startTransition(() => {
         dispatch({ type: 'ADD_SPLIT', payload })
       })
     },
     updateSplit(payload) {
+      enqueueOfflineOperation({
+        type: 'UPDATE_SPLIT',
+        entityKey: `split:${payload.splitId}`,
+        payload: payload as unknown as Record<string, unknown>,
+      })
       startTransition(() => {
         dispatch({ type: 'UPDATE_SPLIT', splitId: payload.splitId, payload })
       })
     },
     deleteSplit(splitId) {
+      enqueueOfflineOperation({
+        type: 'DELETE_SPLIT',
+        entityKey: `split:${splitId}`,
+        payload: { splitId },
+      })
       startTransition(() => {
         dispatch({ type: 'DELETE_SPLIT', splitId })
       })
@@ -741,16 +757,31 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       })
     },
     createGroup(name, members) {
+      enqueueOfflineOperation({
+        type: 'CREATE_GROUP',
+        entityKey: `group:${name}`,
+        payload: { name, members },
+      })
       startTransition(() => {
         dispatch({ type: 'CREATE_GROUP', name, members })
       })
     },
     updateGroup(payload) {
+      enqueueOfflineOperation({
+        type: 'UPDATE_GROUP',
+        entityKey: `group:${payload.groupId}`,
+        payload: payload as unknown as Record<string, unknown>,
+      })
       startTransition(() => {
         dispatch({ type: 'UPDATE_GROUP', ...payload })
       })
     },
     deleteGroup(groupId) {
+      enqueueOfflineOperation({
+        type: 'DELETE_GROUP',
+        entityKey: `group:${groupId}`,
+        payload: { groupId },
+      })
       startTransition(() => {
         dispatch({ type: 'DELETE_GROUP', groupId })
       })
@@ -766,6 +797,11 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       })
     },
     ingestTransaction({ merchant, amountRupees, type }) {
+      enqueueOfflineOperation({
+        type: 'INGEST_TRANSACTION',
+        entityKey: `tx:${merchant}:${Date.now()}`,
+        payload: { merchant, amountRupees, type },
+      })
       startTransition(() => {
         dispatch({
           type: 'INGEST_TRANSACTION',
@@ -776,26 +812,51 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       })
     },
     addCashEntry(amountRupees, entryType) {
+      enqueueOfflineOperation({
+        type: 'ADD_CASH_ENTRY',
+        entityKey: `cash:${entryType}:${Date.now()}`,
+        payload: { amountRupees, entryType },
+      })
       startTransition(() => {
         dispatch({ type: 'ADD_CASH_ENTRY', amountRupees, entryType })
       })
     },
     addEmi(name, amountRupees) {
+      enqueueOfflineOperation({
+        type: 'ADD_EMI',
+        entityKey: `emi:${name}`,
+        payload: { name, amountRupees },
+      })
       startTransition(() => {
         dispatch({ type: 'ADD_EMI', name, amountRupees })
       })
     },
     updateEmi(payload) {
+      enqueueOfflineOperation({
+        type: 'UPDATE_EMI',
+        entityKey: `emi:${payload.emiId}`,
+        payload: payload as unknown as Record<string, unknown>,
+      })
       startTransition(() => {
         dispatch({ type: 'UPDATE_EMI', ...payload })
       })
     },
     deleteEmi(emiId) {
+      enqueueOfflineOperation({
+        type: 'DELETE_EMI',
+        entityKey: `emi:${emiId}`,
+        payload: { emiId },
+      })
       startTransition(() => {
         dispatch({ type: 'DELETE_EMI', emiId })
       })
     },
     triggerRentSplit(amountPaise, members, recurring) {
+      enqueueOfflineOperation({
+        type: 'TRIGGER_RENT_SPLIT',
+        entityKey: `rent:${Date.now()}`,
+        payload: { amountPaise, members, recurring },
+      })
       startTransition(() => {
         dispatch({ type: 'TRIGGER_RENT_SPLIT', amountPaise, members, recurring })
       })

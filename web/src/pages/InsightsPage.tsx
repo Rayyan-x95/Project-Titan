@@ -1,5 +1,9 @@
+import { m, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
+import { QRShareModal } from '../features/qr-share/components/QRShareModal'
+import { useQRShare } from '../features/qr-share/hooks/useQRShare'
+import { createShareLink } from '../features/share-links/services/shareLinkService'
 import {
   formatRupees,
   getHealthScore,
@@ -24,6 +28,7 @@ function buildPath(values: number[]) {
 }
 
 export default function InsightsPage() {
+  const shouldReduceMotion = useReducedMotion()
   const state = useTitanState()
   const trends = getSpendTrends(state.splits, state.cashEntries, state.transactions)
   const health = getHealthScore(state.emis, state.splits)
@@ -32,6 +37,16 @@ export default function InsightsPage() {
     state.splits.length > 0 || state.cashEntries.length > 0 || state.transactions.length > 0
   const chartValues = trends.map((trend) => trend.totalRupees)
   const chartPath = buildPath(chartValues)
+  const latestTotal = chartValues[chartValues.length - 1] ?? 0
+  const previousTotal = chartValues[chartValues.length - 2] ?? latestTotal
+  const weeklyDelta = latestTotal - previousTotal
+  const shareableReportUrl = createShareLink('summary', '/insights', {
+    healthScore: health.score,
+    status: health.status,
+    latestTotal,
+    weeklyDelta,
+  })
+  const { open, imageUrl, openModal, closeModal } = useQRShare(shareableReportUrl)
 
   return (
     <div className="page">
@@ -39,6 +54,11 @@ export default function InsightsPage() {
         eyebrow="Pulse / Insights"
         title="Live financial diagnostics"
         description="View real-time financial diagnostics powered by your actual Titan activity."
+        action={
+          <button className="button button-secondary" onClick={openModal} type="button">
+            Share weekly report
+          </button>
+        }
       />
 
       <section className="glass-panel insights-chart-panel">
@@ -57,8 +77,23 @@ export default function InsightsPage() {
               <stop offset="100%" stopColor="var(--tertiary)" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path d={`${chartPath} L500 220 L0 220 Z`} fill="url(#growthGlow)" />
-          <path d={chartPath} fill="none" stroke="var(--tertiary)" strokeWidth="3" strokeLinecap="round" />
+          <m.path
+            d={`${chartPath} L500 220 L0 220 Z`}
+            fill="url(#growthGlow)"
+            initial={shouldReduceMotion ? false : { opacity: 0.45 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.24, ease: [0.2, 0.8, 0.2, 1] }}
+          />
+          <m.path
+            d={chartPath}
+            fill="none"
+            stroke="var(--tertiary)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            initial={shouldReduceMotion ? false : { pathLength: 0, opacity: 0.4 }}
+            animate={shouldReduceMotion ? { pathLength: 1, opacity: 1 } : { pathLength: 1, opacity: 1 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.45, ease: [0.2, 0.8, 0.2, 1] }}
+          />
         </svg>
 
         <div className="trend-labels">
@@ -147,6 +182,15 @@ export default function InsightsPage() {
           </div>
         </div>
       </section>
+
+      <QRShareModal
+        open={open}
+        title="Weekly savings report"
+        subtitle="Scan to open this Titan insight snapshot"
+        scanValue={shareableReportUrl}
+        imageUrl={imageUrl}
+        onClose={closeModal}
+      />
     </div>
   )
 }
