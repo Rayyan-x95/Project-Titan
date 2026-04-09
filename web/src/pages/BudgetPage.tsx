@@ -10,7 +10,7 @@ export function BudgetPage() {
   const [monthlyLimit, setMonthlyLimit] = useState(
     state.budget.monthlyLimitRupees > 0 ? String(state.budget.monthlyLimitRupees) : '',
   )
-  const [warningThreshold, setWarningThreshold] = useState(state.budget.warningThresholdPercent)
+  const [warningThreshold, setWarningThreshold] = useState<number | ''>(state.budget.warningThresholdPercent)
   const [showSaved, setShowSaved] = useState(false)
   const trackedSpendRupees = getCurrentMonthTrackedSpendRupees(state)
   const budgetSummary = getBudgetSummary(
@@ -41,12 +41,15 @@ export function BudgetPage() {
         <label className="field">
           <span>Warning threshold (%)</span>
           <input
-            inputMode="numeric"
             max="100"
             min="1"
             onChange={(event) => {
-              const value = Number(event.target.value)
-              setWarningThreshold(Number.isFinite(value) ? value : 0)
+              if (event.target.value === '') {
+                setWarningThreshold('')
+              } else {
+                const value = Number(event.target.value)
+                setWarningThreshold(Number.isFinite(value) ? value : '')
+              }
             }}
             placeholder="80"
             type="number"
@@ -65,7 +68,7 @@ export function BudgetPage() {
             className="button button-primary"
             onClick={() => {
               const parsedLimit = Number(monthlyLimit)
-              const parsedThreshold = warningThreshold
+              const parsedThreshold = warningThreshold === '' ? 80 : warningThreshold
               const normalizedThreshold =
                 Number.isFinite(parsedThreshold) && parsedThreshold > 0 && parsedThreshold <= 100
                   ? parsedThreshold

@@ -46,7 +46,7 @@ export default function LoginPage() {
     event.preventDefault()
 
     const email = formData.email.trim()
-    const password = formData.password.trim()
+    const password = formData.password
 
     if (!email || !password) {
       addNotification('Missing credentials', 'Please enter both email and password.', 'warning')
