@@ -27,7 +27,10 @@ export function ProfilePage() {
         <label className="field">
           <span>Display name</span>
           <input
-            onChange={(event) => setDisplayName(event.target.value)}
+            onChange={(event) => {
+              setDisplayName(event.target.value)
+              setShowSaved(false)
+            }}
             placeholder="Aarav"
             value={displayName}
           />
@@ -37,7 +40,10 @@ export function ProfilePage() {
           <span>Monthly savings goal</span>
           <input
             inputMode="decimal"
-            onChange={(event) => setSavingsGoal(event.target.value)}
+            onChange={(event) => {
+              setSavingsGoal(event.target.value)
+              setShowSaved(false)
+            }}
             placeholder="5000"
             value={savingsGoal}
           />

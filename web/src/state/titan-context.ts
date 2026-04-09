@@ -97,6 +97,15 @@ export function useTitan() {
     href: notification.href,
   }))
 
+  // TODO(TITAN-AUTH-102): Replace this compatibility id with a persistent stable id from state.currentUserId.
+  const legacyUserId = state.currentUser
+    ? state.currentUser
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+    : ''
+
   return {
     ...state,
     ...actions,
@@ -105,7 +114,7 @@ export function useTitan() {
     isLoading: false,
     user: state.currentUser
       ? {
-          id: state.currentUser.toLowerCase().replace(/\s+/g, '-'),
+          id: legacyUserId || 'legacy-user',
           name: state.currentUser,
           email: '',
           avatar: '',

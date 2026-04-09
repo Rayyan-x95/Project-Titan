@@ -7,6 +7,8 @@ type OfflineIndicatorProps = {
 type NetworkNavigator = Navigator & {
   connection?: {
     effectiveType?: string
+    addEventListener?: (type: 'change', listener: () => void) => void
+    removeEventListener?: (type: 'change', listener: () => void) => void
   }
 }
 
@@ -20,12 +22,16 @@ export function OfflineIndicator({ show }: OfflineIndicatorProps) {
       setNetworkType((navigator as NetworkNavigator).connection?.effectiveType ?? 'unknown')
     }
 
+    const connection = (navigator as NetworkNavigator).connection
+
     window.addEventListener('online', handleChange)
     window.addEventListener('offline', handleChange)
+    connection?.addEventListener?.('change', handleChange)
 
     return () => {
       window.removeEventListener('online', handleChange)
       window.removeEventListener('offline', handleChange)
+      connection?.removeEventListener?.('change', handleChange)
     }
   }, [])
 

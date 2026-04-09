@@ -779,6 +779,8 @@ export function TitanProvider({ children }: { children: ReactNode }) {
     })
   }, [state])
 
+  const trackedSpendRupees = getCurrentMonthTrackedSpendRupees(state)
+
   useEffect(() => {
     if (!hasHydratedRef.current || state.budget.monthlyLimitRupees <= 0) {
       return
@@ -786,7 +788,6 @@ export function TitanProvider({ children }: { children: ReactNode }) {
 
     const now = new Date()
     const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-    const trackedSpendRupees = getCurrentMonthTrackedSpendRupees(state)
     const budgetSummary = getBudgetSummary(
       state.budget.monthlyLimitRupees,
       trackedSpendRupees,
@@ -839,7 +840,7 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       }
     })
   }, [
-    state,
+    trackedSpendRupees,
     state.budget.lastAlertKey,
     state.budget.monthlyLimitRupees,
     state.budget.warningThresholdPercent,

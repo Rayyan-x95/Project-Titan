@@ -25,7 +25,13 @@ export const HealthInsightsSection = memo(({ state }: { state: TitanState }) => 
       getCurrentMonthTrackedSpendRupees(state),
       state.budget.warningThresholdPercent,
     )
-  }, [state])
+  }, [
+    state.budget.monthlyLimitRupees,
+    state.budget.warningThresholdPercent,
+    state.splits,
+    state.cashEntries,
+    state.transactions,
+  ])
 
   return (
     <div className="stack-column">

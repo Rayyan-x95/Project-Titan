@@ -5,6 +5,7 @@ export function Notifications() {
   const state = useTitanState()
   const { dismissNotification } = useTitanActions()
   const notifications = state.notifications.slice(0, 3)
+  const totalCount = state.notifications.length
 
   if (notifications.length === 0) {
     return null
@@ -13,7 +14,7 @@ export function Notifications() {
   return (
     <section className="notifications-bar" aria-live="polite">
       <div className="notifications-content">
-        <span className="notification-count">{notifications.length}</span>
+        <span className="notification-count">{totalCount}</span>
         <div className="notifications-list">
           {notifications.map((notification) => (
             <article

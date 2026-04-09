@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { GoogleAnalytics } from './components/GoogleAnalytics'
+import { ProtectedRoute } from './components/ProtectedRoute.tsx'
 import { AppShell } from './components/layouts/AppShell'
 import { NotFound } from './components/not-found'
 import { CurrencyProvider } from './features/currency/components/CurrencyProvider'
@@ -39,31 +40,33 @@ export default function App() {
           <BrowserRouter>
             <Routes>
               <Route element={<AppShell />}>
-                <Route index element={<HomePage />} />
-                <Route path="history" element={<HistoryPage />} />
-                <Route path="groups" element={<GroupsPage />} />
-                <Route path="groups/new" element={<AddGroupPage />} />
-                <Route path="groups/:groupId" element={<GroupDetailPage />} />
-                <Route path="budget" element={<BudgetPage />} />
-                <Route path="notifications" element={<NotificationsPage />} />
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="expense/new" element={<AddExpensePage />} />
-                <Route path="cash" element={<CashPage />} />
-                <Route path="emis" element={<EmiPage />} />
-                <Route path="rent" element={<RentPage />} />
-                <Route path="sms" element={<SmsPage />} />
-                <Route path="insights" element={<InsightsPage />} />
-                <Route path="insights/patterns" element={<PatternsPage />} />
-                <Route path="insights/triggers" element={<TriggersPage />} />
-                <Route path="insights/health" element={<HealthPage />} />
-                <Route path="people/:personId" element={<PersonPage />} />
-                <Route path="settlements/:splitId" element={<SettlementPage />} />
                 <Route path="expense-tracker-india" element={<ExpenseTrackerIndiaPage />} />
                 <Route path="budget-app-for-students" element={<BudgetAppForStudentsPage />} />
                 <Route path="split-expense-app-india" element={<SplitExpenseAppIndiaPage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegistrationPage />} />
-                <Route path="dashboard" element={<Navigate replace to="/" />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="history" element={<HistoryPage />} />
+                  <Route path="groups" element={<GroupsPage />} />
+                  <Route path="groups/new" element={<AddGroupPage />} />
+                  <Route path="groups/:groupId" element={<GroupDetailPage />} />
+                  <Route path="budget" element={<BudgetPage />} />
+                  <Route path="notifications" element={<NotificationsPage />} />
+                  <Route path="profile" element={<ProfilePage />} />
+                  <Route path="expense/new" element={<AddExpensePage />} />
+                  <Route path="cash" element={<CashPage />} />
+                  <Route path="emis" element={<EmiPage />} />
+                  <Route path="rent" element={<RentPage />} />
+                  <Route path="sms" element={<SmsPage />} />
+                  <Route path="insights" element={<InsightsPage />} />
+                  <Route path="insights/patterns" element={<PatternsPage />} />
+                  <Route path="insights/triggers" element={<TriggersPage />} />
+                  <Route path="insights/health" element={<HealthPage />} />
+                  <Route path="people/:personId" element={<PersonPage />} />
+                  <Route path="settlements/:splitId" element={<SettlementPage />} />
+                  <Route path="dashboard" element={<Navigate replace to="/" />} />
+                </Route>
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

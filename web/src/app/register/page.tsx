@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTitan } from '../../state/titan-context'
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function RegistrationPage() {
   const navigate = useNavigate()
   const { addNotification, setCurrentUser } = useTitan()
@@ -16,13 +18,24 @@ export default function RegistrationPage() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
 
+    const email = formData.email.trim()
+
+    if (!email) {
+      addNotification('Missing email', 'Please enter your email address.', 'warning')
+      return
+    }
+
+    if (!EMAIL_PATTERN.test(email)) {
+      addNotification('Invalid email', 'Please enter a valid email address.', 'warning')
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       addNotification('Password mismatch', 'Please make sure both passwords match.', 'warning')
       return
     }
 
-    const fullName =
-      `${formData.firstName} ${formData.lastName}`.trim() || formData.email || 'Titan User'
+    const fullName = `${formData.firstName} ${formData.lastName}`.trim() || email.split('@')[0]
     setCurrentUser(fullName)
     addNotification('Account ready', `Profile created for ${fullName}.`, 'success', '/')
     navigate('/')

@@ -11,7 +11,7 @@ function getNetworkType() {
     return 'unknown'
   }
 
-  return (navigator as NetworkNavigator).connection?.effectiveType ?? 'online'
+  return (navigator as NetworkNavigator).connection?.effectiveType ?? 'unknown'
 }
 
 export function PwaCard() {

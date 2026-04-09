@@ -22,7 +22,14 @@ export function formatCurrency(value: number, currency = 'USD') {
 }
 
 export function formatBytes(bytes: number, decimals = 2) {
-  if (bytes === 0) {
+  if (!Number.isFinite(bytes)) {
+    return '0 Bytes'
+  }
+
+  const sign = bytes < 0 ? '-' : ''
+  const absBytes = Math.abs(bytes)
+
+  if (absBytes === 0) {
     return '0 Bytes'
   }
 
@@ -30,11 +37,13 @@ export function formatBytes(bytes: number, decimals = 2) {
   const fixedDecimals = decimals < 0 ? 0 : decimals
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
   const sizeIndex = Math.min(
-    Math.floor(Math.log(bytes) / Math.log(kiloBytes)),
+    Math.floor(Math.log(absBytes) / Math.log(kiloBytes)),
     sizes.length - 1,
   )
 
-  return `${Number((bytes / kiloBytes ** sizeIndex).toFixed(fixedDecimals))} ${sizes[sizeIndex]}`
+  const normalizedValue = Number((absBytes / kiloBytes ** sizeIndex).toFixed(fixedDecimals))
+
+  return `${sign}${normalizedValue} ${sizes[sizeIndex]}`
 }
 
 export function formatFileSize(bytes: number) {

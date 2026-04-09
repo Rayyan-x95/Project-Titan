@@ -10,9 +10,7 @@ export function BudgetPage() {
   const [monthlyLimit, setMonthlyLimit] = useState(
     state.budget.monthlyLimitRupees > 0 ? String(state.budget.monthlyLimitRupees) : '',
   )
-  const [warningThreshold, setWarningThreshold] = useState(
-    String(state.budget.warningThresholdPercent),
-  )
+  const [warningThreshold, setWarningThreshold] = useState(state.budget.warningThresholdPercent)
   const [showSaved, setShowSaved] = useState(false)
   const trackedSpendRupees = getCurrentMonthTrackedSpendRupees(state)
   const budgetSummary = getBudgetSummary(
@@ -46,8 +44,12 @@ export function BudgetPage() {
             inputMode="numeric"
             max="100"
             min="1"
-            onChange={(event) => setWarningThreshold(event.target.value)}
+            onChange={(event) => {
+              const value = Number(event.target.value)
+              setWarningThreshold(Number.isFinite(value) ? value : 0)
+            }}
             placeholder="80"
+            type="number"
             value={warningThreshold}
           />
         </label>
@@ -63,14 +65,16 @@ export function BudgetPage() {
             className="button button-primary"
             onClick={() => {
               const parsedLimit = Number(monthlyLimit)
-              const parsedThreshold = Number(warningThreshold)
+              const parsedThreshold = warningThreshold
+              const normalizedThreshold =
+                Number.isFinite(parsedThreshold) && parsedThreshold > 0 && parsedThreshold <= 100
+                  ? parsedThreshold
+                  : 80
+
               updateBudget({
                 monthlyLimitRupees:
                   Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 0,
-                warningThresholdPercent:
-                  Number.isFinite(parsedThreshold) && parsedThreshold > 0
-                    ? parsedThreshold
-                    : 80,
+                warningThresholdPercent: normalizedThreshold,
               })
               setShowSaved(true)
             }}
@@ -82,7 +86,7 @@ export function BudgetPage() {
             className="button button-ghost"
             onClick={() => {
               setMonthlyLimit('')
-              setWarningThreshold('80')
+              setWarningThreshold(80)
               updateBudget({ monthlyLimitRupees: 0, warningThresholdPercent: 80 })
               setShowSaved(true)
             }}

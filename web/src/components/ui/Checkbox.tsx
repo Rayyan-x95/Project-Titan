@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 type CheckboxProps = {
   checked: boolean
   onChange: () => void
@@ -15,6 +17,9 @@ export function Checkbox({
   size = 'medium',
   id,
 }: CheckboxProps) {
+  const generatedId = useId()
+  const checkboxId = id ?? generatedId
+
   const sizeStyles = {
     small: 'size-small',
     medium: 'size-medium',
@@ -22,11 +27,11 @@ export function Checkbox({
   }
 
   return (
-    <label className={`checkbox-group ${sizeStyles[size]}`} htmlFor={id ?? label}>
+    <label className={`checkbox-group ${sizeStyles[size]}`} htmlFor={checkboxId}>
       <input
         checked={checked}
         disabled={disabled}
-        id={id ?? label}
+        id={checkboxId}
         onChange={onChange}
         type="checkbox"
       />

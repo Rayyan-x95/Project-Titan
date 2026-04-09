@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import { TitanSegmentedControl } from '../components/TitanSegmentedControl'
+import { useOfflineSync } from '../features/offline-sync/hooks/useOfflineSync'
 import { formatDate } from '../lib/finance'
 import { useTitanActions, useTitanState } from '../state/useTitan'
 
 export function NotificationsPage() {
   const state = useTitanState()
+  const { isOnline, isSyncing, pendingCount } = useOfflineSync()
+  const notifications = state.notifications ?? []
   const {
     clearNotifications,
     dismissNotification,
@@ -14,10 +17,12 @@ export function NotificationsPage() {
     markNotificationRead,
   } = useTitanActions()
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
+  const hasLocalPendingChanges = pendingCount > 0 || isSyncing || !isOnline
+  const savedLocallyLabel = hasLocalPendingChanges ? 'Yes' : 'No'
   const visibleNotifications =
     filter === 'unread'
-      ? state.notifications.filter((notification) => !notification.read)
-      : state.notifications
+      ? notifications.filter((notification) => !notification.read)
+      : notifications
 
   return (
     <div className="page">
@@ -41,19 +46,19 @@ export function NotificationsPage() {
         <div className="metric-grid">
           <div>
             <span>Total</span>
-            <strong>{state.notifications.length}</strong>
+            <strong>{notifications.length}</strong>
           </div>
           <div>
             <span>Unread</span>
-            <strong>{state.notifications.filter((notification) => !notification.read).length}</strong>
+            <strong>{notifications.filter((notification) => !notification.read).length}</strong>
           </div>
           <div>
             <span>Warnings</span>
-            <strong>{state.notifications.filter((notification) => notification.kind === 'warning').length}</strong>
+            <strong>{notifications.filter((notification) => notification.kind === 'warning').length}</strong>
           </div>
           <div>
             <span>Saved locally</span>
-            <strong>Yes</strong>
+            <strong>{savedLocallyLabel}</strong>
           </div>
         </div>
 
