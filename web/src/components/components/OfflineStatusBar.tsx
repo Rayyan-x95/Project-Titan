@@ -1,30 +1,24 @@
-interface OfflineStatusBarProps {
+type OfflineStatusBarProps = {
   show: boolean
   isConnected: boolean
 }
 
-const OfflineStatusBar: React.FC<OfflineStatusBarProps> = ({ show, isConnected }) => {
-  if (!show) return null
-
-  const status = isConnected
-    ? 'Connected'
-    : 'Disconnected'
-
-  const icon = isConnected
-    ? '✓'
-    : '✗'
+export function OfflineStatusBar({ show, isConnected }: OfflineStatusBarProps) {
+  if (!show) {
+    return null
+  }
 
   return (
     <div className="offline-status-bar">
       <div className="status-icon">
-        <span className="icon">{icon}</span>
+        <span className="icon" aria-hidden="true">
+          {isConnected ? 'OK' : 'OFF'}
+        </span>
       </div>
       <div className="status-text">
-        <span className="label">{status}</span>
-        <span className="indicator">{isConnected ? '●' : '○'}</span>
+        <span className="label">{isConnected ? 'Connected' : 'Disconnected'}</span>
+        <span className="indicator">{isConnected ? 'Live sync available' : 'Queued locally'}</span>
       </div>
     </div>
   )
 }
-
-export { OfflineStatusBar }

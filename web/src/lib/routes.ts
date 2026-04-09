@@ -78,6 +78,30 @@ export const ROUTES: AppRoute[] = [
     changefreq: 'weekly',
     isIndexed: true,
     description: 'Manage groups and settlements'
+  },
+  {
+    path: '/budget',
+    name: 'Budget Planner',
+    priority: 0.3,
+    changefreq: 'weekly',
+    isIndexed: false,
+    description: 'Private monthly budget planner'
+  },
+  {
+    path: '/notifications',
+    name: 'Notifications',
+    priority: 0.2,
+    changefreq: 'daily',
+    isIndexed: false,
+    description: 'Private notification center'
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    priority: 0.2,
+    changefreq: 'monthly',
+    isIndexed: false,
+    description: 'Private profile and defaults'
   }
   // Add new routes here in future
   // They will automatically appear in sitemap on next build

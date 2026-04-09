@@ -1,84 +1,89 @@
-/**
- * Core utilities for Project Titan
- * Modernized, TypeScript-safe implementations
- */
+import { useEffect, useState } from 'react'
 
-export const formatDate = (date: Date): string => {
+export function formatDate(date: Date) {
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   }).format(date)
 }
 
-export const formatDateRange = (date: Date): string => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date) + ' - ' + formatDate(new Date(Date.now() + 86400000))
+export function formatDateRange(date: Date) {
+  return `${formatDate(date)} - ${formatDate(new Date(date.getTime() + 86_400_000))}`
 }
 
-export const formatCurrency = (value: number, currency: string = 'USD'): string => {
+export function formatCurrency(value: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: currency
+    currency,
   }).format(value)
 }
 
-export const formatBytes = (bytes: number, decimals = 2): string => {
-  if (bytes === 0) return '0 Bytes'
+export function formatBytes(bytes: number, decimals = 2) {
+  if (bytes === 0) {
+    return '0 Bytes'
+  }
 
-  const k = 1024
-  const dm = decimals < 0 ? 0 : decimals
+  const kiloBytes = 1024
+  const fixedDecimals = decimals < 0 ? 0 : decimals
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const sizeIndex = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(kiloBytes)),
+    sizes.length - 1,
+  )
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+  return `${Number((bytes / kiloBytes ** sizeIndex).toFixed(fixedDecimals))} ${sizes[sizeIndex]}`
 }
 
-export const formatFileSize = (bytes: number): string => {
+export function formatFileSize(bytes: number) {
   return formatBytes(bytes)
 }
 
-export const debounce = <T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): ((...args: Parameters<T>) => void) => {
+export function debounce<TArgs extends unknown[]>(
+  func: (...args: TArgs) => void,
+  wait: number,
+) {
   let timeout: ReturnType<typeof setTimeout> | null = null
 
-  return function (...args: Parameters<T>) {
-    if (timeout) clearTimeout(timeout)
+  return (...args: TArgs) => {
+    if (timeout) {
+      clearTimeout(timeout)
+    }
+
     timeout = setTimeout(() => func(...args), wait)
   }
 }
 
-export const throttle = <T extends (...args: any[]) => any>(
-  func: T,
-  limit: number
-): ((...args: Parameters<T>) => void) => {
-  let inThrottle: boolean = false
+export function throttle<TArgs extends unknown[]>(
+  func: (...args: TArgs) => void,
+  limit: number,
+) {
+  let inThrottle = false
 
-  return function (...args: Parameters<T>) {
-    if (!inThrottle) {
-      func(...args)
-      inThrottle = true
-      setTimeout(() => {
-        inThrottle = false
-      }, limit)
+  return (...args: TArgs) => {
+    if (inThrottle) {
+      return
     }
+
+    func(...args)
+    inThrottle = true
+    setTimeout(() => {
+      inThrottle = false
+    }, limit)
   }
 }
 
-export const useLocalStorage = <T,>(key: string, initialValue: T): [T, (value: T) => void] => {
-  const [storedValue, setStoredValue] = useState(() => {
+export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    if (typeof window === 'undefined') {
+      return initialValue
+    }
+
     try {
       const item = window.localStorage.getItem(key)
-      return item ? JSON.parse(item) : initialValue
+      return item ? (JSON.parse(item) as T) : initialValue
     } catch (error) {
       console.error(error)
       return initialValue
@@ -86,8 +91,13 @@ export const useLocalStorage = <T,>(key: string, initialValue: T): [T, (value: T
   })
 
   const setValue = (value: T) => {
+    setStoredValue(value)
+
+    if (typeof window === 'undefined') {
+      return
+    }
+
     try {
-      setStoredValue(value)
       window.localStorage.setItem(key, JSON.stringify(value))
     } catch (error) {
       console.error(error)
@@ -97,31 +107,45 @@ export const useLocalStorage = <T,>(key: string, initialValue: T): [T, (value: T
   return [storedValue, setValue]
 }
 
-export const useDarkMode = () => {
+export function useDarkMode() {
   const [isDark, setIsDark] = useLocalStorage('isDark', false)
 
-  const toggle = () => setIsDark(!isDark)
+  useEffect(() => {
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light'
+  }, [isDark])
 
-  return { isDark, toggle }
+  return {
+    isDark,
+    toggle: () => setIsDark(!isDark),
+  }
 }
 
-export const useWindowSize = (): [number, number] => {
+export function useWindowSize() {
   const [windowSize, setWindowSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0
+    width: typeof window === 'undefined' ? 0 : window.innerWidth,
+    height: typeof window === 'undefined' ? 0 : window.innerHeight,
   })
 
-  useLayoutEffect(() => {
-    setWindowSize({
-      width: typeof window !== 'undefined' ? window.innerWidth : 0,
-      height: typeof window !== 'undefined' ? window.innerHeight : 0
-    })
-  }, [windowSize])
+  useEffect(() => {
+    function handleResize() {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
 
-  return windowSize
+    window.addEventListener('resize', handleResize)
+    handleResize()
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  return [windowSize.width, windowSize.height] as const
 }
 
-export const useNotification = () => {
+export function useNotification() {
   const [notification, setNotification] = useState<{
     id: number
     title: string
@@ -130,34 +154,22 @@ export const useNotification = () => {
     onClose: () => void
   } | null>(null)
 
+  const dismiss = () => setNotification(null)
+
   const notify = (title: string, message: string) => {
     setNotification({
       id: Date.now(),
       title,
       message,
       visible: true,
-      onClose: () => setNotification(null)
+      onClose: dismiss,
     })
-  }
-
-  const dismiss = () => setNotification(null)
-
-  const close = () => {
-    if (notification?.visible) {
-      setNotification(null)
-      if (typeof window !== 'undefined') {
-        const notificationElement = document.getElementById('notification')
-        if (notificationElement) {
-          notificationElement.remove()
-        }
-      }
-    }
   }
 
   return {
     notification,
     notify,
-    close,
-    dismiss
+    close: dismiss,
+    dismiss,
   }
 }

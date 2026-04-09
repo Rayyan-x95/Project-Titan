@@ -1,34 +1,20 @@
 import { createRoot } from 'react-dom/client'
-import { Provider } from './providers'
+import App from '../App'
 import { AppProvider } from './AppProvider'
 
-const rootElement = document.getElementById('root')
+export function mountApp(rootId = 'root') {
+  const rootElement = document.getElementById(rootId)
 
-if (!rootElement) {
-  throw new Error('Root element not found')
+  if (!rootElement) {
+    throw new Error('Root element not found')
+  }
+
+  const root = createRoot(rootElement)
+  root.render(
+    <AppProvider>
+      <App />
+    </AppProvider>,
+  )
 }
 
-const root = createRoot(rootElement)
-
-// Root Provider
-const Provider = {
-  // Initialize Provider
-  setup() {
-    root.render(
-      <AppProvider>
-        <Provider.Provider>
-          <main>
-            <div id="root">
-              {/* React Root here */}
-              <App />
-            </div>
-          </main>
-        </Provider.Provider>
-      </AppProvider>
-    )
-  },
-  // Cleanup Provider (if needed)
-  teardown() {},
-}
-
-export default Provider
+export default mountApp

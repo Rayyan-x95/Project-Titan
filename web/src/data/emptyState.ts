@@ -8,5 +8,12 @@ export const emptyState: TitanState = {
   cashEntries: [],
   emis: [],
   notifications: [],
+  profile: {
+    savingsGoalRupees: 0,
+  },
+  budget: {
+    monthlyLimitRupees: 0,
+    warningThresholdPercent: 80,
+  },
   rentSchedules: [],
 }

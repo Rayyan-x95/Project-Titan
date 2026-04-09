@@ -1,4 +1,4 @@
-interface CheckboxProps {
+type CheckboxProps = {
   checked: boolean
   onChange: () => void
   label: string
@@ -7,15 +7,14 @@ interface CheckboxProps {
   id?: string
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({
+export function Checkbox({
   checked,
   onChange,
   label,
   disabled = false,
   size = 'medium',
   id,
-}) => {
-  const baseStyles = 'checkbox'
+}: CheckboxProps) {
   const sizeStyles = {
     small: 'size-small',
     medium: 'size-medium',
@@ -23,19 +22,16 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   }
 
   return (
-    <label
-      className={`checkbox-group ${sizeStyles[size]}`}
-      id={id}
-    >
+    <label className={`checkbox-group ${sizeStyles[size]}`} htmlFor={id ?? label}>
       <input
-        type="checkbox"
         checked={checked}
-        onChange={onChange}
         disabled={disabled}
-        id={label}
+        id={id ?? label}
+        onChange={onChange}
+        type="checkbox"
       />
       <span className={`checkbox-mark ${checked ? 'checked' : ''}`}>
-        <span className="mark"></span>
+        <span className="mark" />
       </span>
       <span className="checkbox-text">{label}</span>
     </label>

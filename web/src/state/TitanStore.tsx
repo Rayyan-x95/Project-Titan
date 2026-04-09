@@ -9,6 +9,8 @@ import {
 import { emptyState } from '../data/emptyState'
 import {
   createParticipantShareMap,
+  getBudgetSummary,
+  getCurrentMonthTrackedSpendRupees,
   getSettledAmountPaise,
   isSplitSettled,
   normalizeParticipantSettlementMap,
@@ -23,6 +25,7 @@ import type {
   TitanState,
 } from '../types'
 import {
+  type AddSplitInput,
   TitanActionsContext,
   TitanCurrentUserContext,
   TitanStateContext,
@@ -32,18 +35,18 @@ import { enqueueOfflineOperation } from '../features/offline-sync/services/offli
 
 const RENT_INTERVAL_DAYS = 30
 
-type AddSplitPayload = {
-  amountPaise: number
-  description: string
-  participants: string[]
-  groupId?: string
-}
-
 type Action =
   | { type: 'HYDRATE_STATE'; state: TitanState }
   | { type: 'SET_CURRENT_USER'; name: string }
-  | { type: 'ADD_SPLIT'; payload: AddSplitPayload }
-  | { type: 'UPDATE_SPLIT'; splitId: string; payload: AddSplitPayload }
+  | { type: 'UPDATE_PROFILE'; savingsGoalRupees: number }
+  | {
+      type: 'UPDATE_BUDGET'
+      monthlyLimitRupees: number
+      warningThresholdPercent: number
+    }
+  | { type: 'SET_BUDGET_ALERT_KEY'; alertKey?: string }
+  | { type: 'ADD_SPLIT'; payload: AddSplitInput }
+  | { type: 'UPDATE_SPLIT'; splitId: string; payload: AddSplitInput }
   | { type: 'DELETE_SPLIT'; splitId: string }
   | {
       type: 'SETTLE_PARTIAL'
@@ -64,6 +67,17 @@ type Action =
   | { type: 'DELETE_EMI'; emiId: string }
   | { type: 'TRIGGER_RENT_SPLIT'; amountPaise: number; members: string[]; recurring: boolean }
   | { type: 'RUN_DUE_RENT_SCHEDULES' }
+  | {
+      type: 'ADD_NOTIFICATION'
+      title: string
+      message: string
+      kind: NotificationEntry['kind']
+      href?: string
+    }
+  | { type: 'DISMISS_NOTIFICATION'; id: string }
+  | { type: 'MARK_NOTIFICATION_READ'; id: string }
+  | { type: 'MARK_ALL_NOTIFICATIONS_READ' }
+  | { type: 'CLEAR_NOTIFICATIONS'; readOnly?: boolean }
 
 function createId(prefix: string) {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -149,6 +163,17 @@ function normalizeState(state: TitanState): TitanState {
       ? state.emis.map((emi) => ({ ...emi, updatedAt: emi.updatedAt ?? emi.dueDate }))
       : [],
     notifications: Array.isArray(state.notifications) ? state.notifications : [],
+    profile: {
+      savingsGoalRupees: Math.max(state.profile?.savingsGoalRupees ?? 0, 0),
+    },
+    budget: {
+      monthlyLimitRupees: Math.max(state.budget?.monthlyLimitRupees ?? 0, 0),
+      warningThresholdPercent: Math.min(
+        Math.max(Math.round(state.budget?.warningThresholdPercent ?? 80), 1),
+        100,
+      ),
+      lastAlertKey: state.budget?.lastAlertKey,
+    },
     rentSchedules: Array.isArray(state.rentSchedules)
       ? state.rentSchedules.map(normalizeRentSchedule)
       : [],
@@ -161,7 +186,7 @@ function getInitialState() {
 
 function buildSplitFromPayload(
   state: TitanState,
-  payload: AddSplitPayload,
+  payload: AddSplitInput,
   existingSplit?: Split,
 ) {
   if (!state.currentUser) {
@@ -231,6 +256,66 @@ function reducer(state: TitanState, action: Action): TitanState {
       return {
         ...state,
         currentUser: action.name.trim(),
+      }
+    case 'UPDATE_PROFILE':
+      return {
+        ...state,
+        profile: {
+          ...state.profile,
+          savingsGoalRupees: Math.max(action.savingsGoalRupees, 0),
+        },
+      }
+    case 'UPDATE_BUDGET':
+      return {
+        ...state,
+        budget: {
+          ...state.budget,
+          monthlyLimitRupees: Math.max(action.monthlyLimitRupees, 0),
+          warningThresholdPercent: Math.min(
+            Math.max(Math.round(action.warningThresholdPercent), 1),
+            100,
+          ),
+        },
+      }
+    case 'SET_BUDGET_ALERT_KEY':
+      return {
+        ...state,
+        budget: {
+          ...state.budget,
+          lastAlertKey: action.alertKey,
+        },
+      }
+    case 'ADD_NOTIFICATION':
+      return pushNotification(
+        state,
+        createNotification(action.title, action.message, action.kind, action.href),
+      )
+    case 'DISMISS_NOTIFICATION':
+      return {
+        ...state,
+        notifications: state.notifications.filter((notification) => notification.id !== action.id),
+      }
+    case 'MARK_NOTIFICATION_READ':
+      return {
+        ...state,
+        notifications: state.notifications.map((notification) =>
+          notification.id === action.id ? { ...notification, read: true } : notification,
+        ),
+      }
+    case 'MARK_ALL_NOTIFICATIONS_READ':
+      return {
+        ...state,
+        notifications: state.notifications.map((notification) => ({
+          ...notification,
+          read: true,
+        })),
+      }
+    case 'CLEAR_NOTIFICATIONS':
+      return {
+        ...state,
+        notifications: action.readOnly
+          ? state.notifications.filter((notification) => !notification.read)
+          : [],
       }
     case 'ADD_SPLIT': {
       const split = buildSplitFromPayload(state, action.payload)
@@ -650,11 +735,15 @@ export function TitanProvider({ children }: { children: ReactNode }) {
     titanBackend
       .loadState()
       .then((persistedState) => {
-        if (!active || !persistedState) {
+        if (!active) {
           return
         }
 
         hasHydratedRef.current = true
+        if (!persistedState) {
+          return
+        }
+
         startTransition(() => {
           dispatch({ type: 'HYDRATE_STATE', state: persistedState })
           dispatch({ type: 'RUN_DUE_RENT_SCHEDULES' })
@@ -690,11 +779,134 @@ export function TitanProvider({ children }: { children: ReactNode }) {
     })
   }, [state])
 
+  useEffect(() => {
+    if (!hasHydratedRef.current || state.budget.monthlyLimitRupees <= 0) {
+      return
+    }
+
+    const now = new Date()
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const trackedSpendRupees = getCurrentMonthTrackedSpendRupees(state)
+    const budgetSummary = getBudgetSummary(
+      state.budget.monthlyLimitRupees,
+      trackedSpendRupees,
+      state.budget.warningThresholdPercent,
+    )
+
+    let nextAlertKey = `${monthKey}:none`
+    let nextNotification:
+      | {
+          title: string
+          message: string
+          kind: NotificationEntry['kind']
+          href?: string
+        }
+      | null = null
+
+    if (budgetSummary.status === 'OVER') {
+      nextAlertKey = `${monthKey}:over`
+      nextNotification = {
+        title: 'Monthly budget exceeded',
+        message: `Tracked spend reached INR ${trackedSpendRupees.toFixed(2)} this month.`,
+        kind: 'warning',
+        href: '/budget',
+      }
+    } else if (budgetSummary.status === 'WARNING') {
+      nextAlertKey = `${monthKey}:warning`
+      nextNotification = {
+        title: 'Budget warning',
+        message: `You have used ${budgetSummary.percentUsed}% of this month's budget.`,
+        kind: 'info',
+        href: '/budget',
+      }
+    }
+
+    if (state.budget.lastAlertKey === nextAlertKey) {
+      return
+    }
+
+    startTransition(() => {
+      dispatch({ type: 'SET_BUDGET_ALERT_KEY', alertKey: nextAlertKey })
+
+      if (nextNotification) {
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          title: nextNotification.title,
+          message: nextNotification.message,
+          kind: nextNotification.kind,
+          href: nextNotification.href,
+        })
+      }
+    })
+  }, [
+    state,
+    state.budget.lastAlertKey,
+    state.budget.monthlyLimitRupees,
+    state.budget.warningThresholdPercent,
+  ])
+
   const actions = useMemo<TitanActions>(
     () => ({
     setCurrentUser(name) {
       startTransition(() => {
         dispatch({ type: 'SET_CURRENT_USER', name })
+      })
+    },
+    updateProfile({ savingsGoalRupees }) {
+      startTransition(() => {
+        dispatch({ type: 'UPDATE_PROFILE', savingsGoalRupees })
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          title: 'Profile updated',
+          message: 'Your savings goal was saved locally.',
+          kind: 'success',
+          href: '/profile',
+        })
+      })
+    },
+    updateBudget({ monthlyLimitRupees, warningThresholdPercent }) {
+      startTransition(() => {
+        dispatch({
+          type: 'UPDATE_BUDGET',
+          monthlyLimitRupees,
+          warningThresholdPercent,
+        })
+        dispatch({
+          type: 'SET_BUDGET_ALERT_KEY',
+          alertKey: undefined,
+        })
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          title: 'Budget updated',
+          message: `Monthly limit set to INR ${monthlyLimitRupees.toFixed(2)}.`,
+          kind: 'success',
+          href: '/budget',
+        })
+      })
+    },
+    addNotification(title, message, kind = 'info', href) {
+      startTransition(() => {
+        dispatch({ type: 'ADD_NOTIFICATION', title, message, kind, href })
+      })
+    },
+    dismissNotification(id) {
+      startTransition(() => {
+        dispatch({ type: 'DISMISS_NOTIFICATION', id })
+      })
+    },
+    markNotificationRead(id) {
+      startTransition(() => {
+        dispatch({ type: 'MARK_NOTIFICATION_READ', id })
+      })
+    },
+    markAllNotificationsRead() {
+      startTransition(() => {
+        dispatch({ type: 'MARK_ALL_NOTIFICATIONS_READ' })
+      })
+    },
+    clearNotifications(readOnly = false) {
+      startTransition(() => {
+        dispatch({ type: 'CLEAR_NOTIFICATIONS', readOnly })
       })
     },
     addSplit(payload) {

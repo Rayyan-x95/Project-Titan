@@ -7,7 +7,7 @@ const SAVE_DEBOUNCE_MS = 250
 let cachedState: TitanState | null = null
 let cachedLoadPromise: Promise<TitanState | null> | null = null
 let latestPendingState: TitanState | null = null
-let saveTimer: ReturnType<typeof window.setTimeout> | null = null
+let saveTimer: number | null = null
 let saveInFlight = Promise.resolve()
 
 export interface TitanBackend {

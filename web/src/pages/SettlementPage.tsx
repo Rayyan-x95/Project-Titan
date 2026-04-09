@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { PageHeader } from '../components/PageHeader'
 import { QRShareModal } from '../features/qr-share/components/QRShareModal'
 import { useQRShare } from '../features/qr-share/hooks/useQRShare'
 import { createQrSharePayload } from '../features/qr-share/services/qrShareService'
 import { createShareLink } from '../features/share-links/services/shareLinkService'
-import { PageHeader } from '../components/PageHeader'
 import {
   formatPaise,
   getOutstandingAmountPaise,
@@ -28,6 +28,17 @@ export function SettlementPage() {
   const { settleFull, settlePartial } = useTitanActions()
   const split = state.splits.find((item) => item.id === splitId)
   const [amount, setAmount] = useState('')
+  const shareableUrl = split
+    ? createShareLink('summary', `/settlements/${split.id}`, {
+        person: personId,
+        description: split.description,
+        pendingPaise: getParticipantOutstandingPaise(
+          split,
+          getSettlementParticipantId(split, state.currentUser, personId) ?? '',
+        ),
+      })
+    : ''
+  const { open, imageUrl, openModal, closeModal } = useQRShare(shareableUrl)
 
   if (!split || !personId) {
     return (
@@ -64,17 +75,11 @@ export function SettlementPage() {
       participantOutstandingPaise,
     )} pending between you and ${personId}.`,
   )
-  const shareableUrl = createShareLink('summary', '/settlements/' + split.id, {
-    person: personId,
-    description: split.description,
-    pendingPaise: participantOutstandingPaise,
-  })
   const qrPayload = createQrSharePayload(
     'Titan settlement summary',
     `${split.description}: ${formatPaise(participantOutstandingPaise)} pending`,
     shareableUrl,
   )
-  const { open, imageUrl, openModal, closeModal } = useQRShare(shareableUrl || qrPayload)
   const shareLabel =
     split.paidBy === state.currentUser ? `${personId}'s share` : 'Your share'
   const settledLabel =
@@ -145,7 +150,11 @@ export function SettlementPage() {
               }
 
               const amountPaise = Math.round(parsedAmount * 100)
-              if (amountPaise > 0 && amountPaise <= MAX_AMOUNT_PAISE && amountPaise <= participantOutstandingPaise) {
+              if (
+                amountPaise > 0 &&
+                amountPaise <= MAX_AMOUNT_PAISE &&
+                amountPaise <= participantOutstandingPaise
+              ) {
                 settlePartial(split.id, participantId, amountPaise)
                 navigate(-1)
               }
@@ -168,12 +177,12 @@ export function SettlementPage() {
       </section>
 
       <QRShareModal
-        open={open}
-        title="Settlement summary"
-        subtitle="Scan to view this settlement"
-        scanValue={shareableUrl}
         imageUrl={imageUrl}
         onClose={closeModal}
+        open={open}
+        scanValue={shareableUrl || qrPayload}
+        subtitle="Scan to view this settlement"
+        title="Settlement summary"
       />
     </div>
   )

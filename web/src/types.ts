@@ -58,6 +58,16 @@ export type NotificationEntry = {
   href?: string
 }
 
+export type UserProfile = {
+  savingsGoalRupees: number
+}
+
+export type BudgetSettings = {
+  monthlyLimitRupees: number
+  warningThresholdPercent: number
+  lastAlertKey?: string
+}
+
 export type RentSchedule = {
   id: string
   paidBy: string
@@ -79,6 +89,8 @@ export type TitanState = {
   cashEntries: CashEntry[]
   emis: Emi[]
   notifications: NotificationEntry[]
+  profile: UserProfile
+  budget: BudgetSettings
   rentSchedules: RentSchedule[]
 }
 
@@ -128,4 +140,16 @@ export type SpendTrend = {
 export type ReverseInsight = {
   amountRupees: number
   valueInContext: string
+}
+
+export type BudgetStatus = 'NOT_SET' | 'ON_TRACK' | 'WARNING' | 'OVER'
+
+export type BudgetSummary = {
+  status: BudgetStatus
+  monthlyLimitRupees: number
+  trackedSpendRupees: number
+  remainingRupees: number
+  percentUsed: number
+  warningThresholdPercent: number
+  recommendation: string
 }

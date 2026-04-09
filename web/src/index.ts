@@ -1,36 +1,18 @@
-// Project Titan - Entry Points
-// Re-export all main files for clean imports
-
-// Components
-export { default as Header } from './components/components/Header'
-export { default as Footer } from './components/components/Footer'
-export { default as Navbar } from './components/components/Navbar'
-export { default as CurrencyToolbar } from './components/components/CurrencyToolbar'
-
-export { default as ProjectCard } from './components/molecules/ProjectCard'
-export { CollaborationModal } from './components/organisms/CollaborationModal'
-export { OfflineIndicator } from './components/organisms/OfflineIndicator'
+export { Footer } from './components/components/Footer'
+export { Header } from './components/components/Header'
+export { Navbar } from './components/components/Navbar'
+export { OfflineStatusBar } from './features/offline-sync/components/OfflineStatusBar'
 export { NotificationBadge } from './components/organisms/NotificationBadge'
-export { OfflineStatusBar } from './components/components/OfflineStatusBar'
+export { OfflineIndicator } from './components/organisms/OfflineIndicator'
 export { PwaCard } from './components/PwaCard'
-
-export { useDarkMode } from './lib/utils'
-export { useTitan } from './state/titan-context'
-
-// Layouts
+export { ProjectCard } from './components/molecules/ProjectCard'
+export { CollaborationModal } from './components/organisms/CollaborationModal'
 export { AppShell } from './components/layouts/AppShell'
 export { DashboardLayout } from './components/layouts/DashboardLayout'
-
-// Public Components
 export { NotFound } from './components/not-found'
 export { Notifications } from './components/notifications'
 export { ErrorBoundary } from './components/ErrorBoundary'
-
-// Styles
-export * from './index.css'
-
-// Utilities
+export { useDarkMode } from './lib/utils'
 export * from './lib/utils'
-
-// Main App
-export { App } from './App'
+export { useTitan } from './state/titan-context'
+export { default as App } from './App'

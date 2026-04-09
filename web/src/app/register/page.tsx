@@ -1,13 +1,10 @@
-// Register Page - Public Entry Point
-// Modern PWA UI for Project Management
-
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTitan } from '../../state/titan-context'
 
-function RegistrationPage() {
+export default function RegistrationPage() {
   const navigate = useNavigate()
-  const { addNotification } = useTitan()
+  const { addNotification, setCurrentUser } = useTitan()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -16,15 +13,19 @@ function RegistrationPage() {
     confirmPassword: '',
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
+
     if (formData.password !== formData.confirmPassword) {
-      addNotification('Error', 'Passwords do not match')
+      addNotification('Password mismatch', 'Please make sure both passwords match.', 'warning')
       return
     }
-    // TODO: Implement actual registration logic
-    addNotification('Welcome', 'Registration functionality coming soon!')
-    navigate('/dashboard')
+
+    const fullName =
+      `${formData.firstName} ${formData.lastName}`.trim() || formData.email || 'Titan User'
+    setCurrentUser(fullName)
+    addNotification('Account ready', `Profile created for ${fullName}.`, 'success', '/')
+    navigate('/')
   }
 
   return (
@@ -39,62 +40,57 @@ function RegistrationPage() {
             <label htmlFor="firstName">First Name</label>
             <input
               id="firstName"
+              onChange={(event) => setFormData({ ...formData, firstName: event.target.value })}
+              placeholder="Enter your first name"
               type="text"
               value={formData.firstName}
-              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-              placeholder="Enter your first name"
             />
           </div>
           <div className="form-group">
             <label htmlFor="lastName">Last Name</label>
             <input
               id="lastName"
+              onChange={(event) => setFormData({ ...formData, lastName: event.target.value })}
+              placeholder="Enter your last name"
               type="text"
               value={formData.lastName}
-              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-              placeholder="Enter your last name"
             />
           </div>
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
               id="email"
+              onChange={(event) => setFormData({ ...formData, email: event.target.value })}
+              placeholder="Enter your email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="Enter your email"
             />
           </div>
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
               id="password"
+              onChange={(event) => setFormData({ ...formData, password: event.target.value })}
+              placeholder="Create a password"
               type="password"
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder="Create a password"
             />
           </div>
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
             <input
               id="confirmPassword"
+              onChange={(event) => setFormData({ ...formData, confirmPassword: event.target.value })}
+              placeholder="Re-enter password"
               type="password"
               value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              placeholder="Re-enter password"
             />
           </div>
-          <button type="submit" className="auth-btn">
+          <button className="auth-btn" type="submit">
             Create Account
           </button>
         </form>
-        <p className="auth-links">
-          Already have an account? <a href="/login">Sign in here</a>
-        </p>
       </div>
     </div>
   )
 }
-
-export default RegistrationPage

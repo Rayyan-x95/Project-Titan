@@ -1,4 +1,5 @@
 import type {
+  BudgetSummary,
   CashEntry,
   Emi,
   Group,
@@ -605,6 +606,90 @@ export function getCashBalance(cashEntries: CashEntry[]) {
   return cashEntries.reduce((total, entry) => {
     return total + (entry.type === 'IN' ? entry.amountRupees : -entry.amountRupees)
   }, 0)
+}
+
+export function getCurrentMonthTrackedSpendRupees(
+  state: Pick<TitanState, 'splits' | 'cashEntries' | 'transactions'>,
+  referenceTimestamp = Date.now(),
+) {
+  const referenceDate = new Date(referenceTimestamp)
+  const monthStart = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    1,
+  ).getTime()
+
+  const splitSpendRupees = state.splits
+    .filter((split) => split.createdAt >= monthStart)
+    .reduce((total, split) => total + split.amountPaise / 100, 0)
+
+  const cashSpendRupees = state.cashEntries
+    .filter((entry) => entry.type === 'OUT' && entry.createdAt >= monthStart)
+    .reduce((total, entry) => total + entry.amountRupees, 0)
+
+  const approvedTransactionsRupees = state.transactions
+    .filter((transaction) => transaction.isApproved && transaction.timestamp >= monthStart)
+    .reduce((total, transaction) => total + transaction.amountRupees, 0)
+
+  return splitSpendRupees + cashSpendRupees + approvedTransactionsRupees
+}
+
+export function getBudgetSummary(
+  monthlyLimitRupees: number,
+  trackedSpendRupees: number,
+  warningThresholdPercent: number,
+): BudgetSummary {
+  if (monthlyLimitRupees <= 0) {
+    return {
+      status: 'NOT_SET',
+      monthlyLimitRupees,
+      trackedSpendRupees,
+      remainingRupees: 0,
+      percentUsed: 0,
+      warningThresholdPercent,
+      recommendation: 'Set a monthly budget to unlock pacing alerts and remaining-spend guidance.',
+    }
+  }
+
+  const remainingRupees = monthlyLimitRupees - trackedSpendRupees
+  const percentUsed = Math.max(
+    0,
+    Math.round((trackedSpendRupees / monthlyLimitRupees) * 100),
+  )
+
+  if (trackedSpendRupees >= monthlyLimitRupees) {
+    return {
+      status: 'OVER',
+      monthlyLimitRupees,
+      trackedSpendRupees,
+      remainingRupees,
+      percentUsed,
+      warningThresholdPercent,
+      recommendation: 'This month is over budget. Pause non-essential spending and settle open balances first.',
+    }
+  }
+
+  if (percentUsed >= warningThresholdPercent) {
+    return {
+      status: 'WARNING',
+      monthlyLimitRupees,
+      trackedSpendRupees,
+      remainingRupees,
+      percentUsed,
+      warningThresholdPercent,
+      recommendation: 'You are near your monthly limit. Prefer cash-ins, delay extras, and avoid fresh EMI load.',
+    }
+  }
+
+  return {
+    status: 'ON_TRACK',
+    monthlyLimitRupees,
+    trackedSpendRupees,
+    remainingRupees,
+    percentUsed,
+    warningThresholdPercent,
+    recommendation: 'Spending is within the target range. Keep approvals tight and review again before the weekend.',
+  }
 }
 
 export function findGroup(groups: Group[], groupId?: string) {

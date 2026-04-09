@@ -3,13 +3,9 @@ import { PageHeader } from '../components/PageHeader'
 import { CurrencyAmount } from '../features/currency/components/CurrencyAmount'
 import { QRShareModal } from '../features/qr-share/components/QRShareModal'
 import { useQRShare } from '../features/qr-share/hooks/useQRShare'
-import { createShareLink } from '../features/share-links/services/shareLinkService'
 import { ShareLinkButton } from '../features/share-links/components/ShareLinkButton'
-import {
-  formatPaise,
-  getGroupBalances,
-  simplifyGroupSettlement,
-} from '../lib/finance'
+import { createShareLink } from '../features/share-links/services/shareLinkService'
+import { formatPaise, getGroupBalances, simplifyGroupSettlement } from '../lib/finance'
 import { useTitanActions, useTitanState } from '../state/useTitan'
 
 export function GroupDetailPage() {
@@ -19,6 +15,14 @@ export function GroupDetailPage() {
   const state = useTitanState()
   const { deleteGroup } = useTitanActions()
   const group = state.groups.find((item) => item.id === groupId)
+  const inviteLink = group
+    ? createShareLink('group-share', '/expense/new', {
+        groupId: group.id,
+        groupName: group.name,
+        participants: group.members.join(', '),
+      })
+    : ''
+  const { open, imageUrl, openModal, closeModal } = useQRShare(inviteLink)
 
   if (!group) {
     return (
@@ -35,12 +39,6 @@ export function GroupDetailPage() {
   const balances = getGroupBalances(state.splits, group.id)
   const optimized = simplifyGroupSettlement(balances)
   const relatedSplits = state.splits.filter((split) => split.groupId === group.id)
-  const inviteLink = createShareLink('group-share', '/expense/new', {
-    groupId: group.id,
-    groupName: group.name,
-    participants: group.members.join(', '),
-  })
-  const { open, imageUrl, openModal, closeModal } = useQRShare(inviteLink)
 
   return (
     <div className="page">
@@ -155,12 +153,12 @@ export function GroupDetailPage() {
       </section>
 
       <QRShareModal
-        open={open}
-        title="Group expense invite"
-        subtitle="Scan to open this group expense flow"
-        scanValue={inviteLink}
         imageUrl={imageUrl}
         onClose={closeModal}
+        open={open}
+        scanValue={inviteLink}
+        subtitle="Scan to open this group expense flow"
+        title="Group expense invite"
       />
     </div>
   )

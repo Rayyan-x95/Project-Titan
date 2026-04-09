@@ -39,6 +39,7 @@ export function TitanDropdown({
   )
 
   const selectedIndex = options.findIndex((option) => option.value === value)
+  const activeIndex = highlightedIndex >= 0 ? highlightedIndex : Math.max(selectedIndex, 0)
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -56,10 +57,8 @@ export function TitanDropdown({
       return
     }
 
-    const indexToFocus = highlightedIndex >= 0 ? highlightedIndex : Math.max(selectedIndex, 0)
-    setHighlightedIndex(indexToFocus)
-    optionRefs.current[indexToFocus]?.focus()
-  }, [highlightedIndex, isOpen, selectedIndex])
+    optionRefs.current[activeIndex]?.focus()
+  }, [activeIndex, isOpen])
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (disabled) {
@@ -68,8 +67,8 @@ export function TitanDropdown({
 
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      setIsOpen(true)
       setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0)
+      setIsOpen(true)
       return
     }
 
@@ -87,14 +86,14 @@ export function TitanDropdown({
 
     if (event.key === 'ArrowDown') {
       event.preventDefault()
-      const nextIndex = highlightedIndex >= lastIndex ? 0 : highlightedIndex + 1
+      const nextIndex = activeIndex >= lastIndex ? 0 : activeIndex + 1
       setHighlightedIndex(nextIndex)
       return
     }
 
     if (event.key === 'ArrowUp') {
       event.preventDefault()
-      const nextIndex = highlightedIndex <= 0 ? lastIndex : highlightedIndex - 1
+      const nextIndex = activeIndex <= 0 ? lastIndex : activeIndex - 1
       setHighlightedIndex(nextIndex)
       return
     }
@@ -113,7 +112,7 @@ export function TitanDropdown({
 
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      const highlightedOption = options[highlightedIndex]
+      const highlightedOption = options[activeIndex]
       if (!highlightedOption) {
         return
       }
@@ -136,12 +135,15 @@ export function TitanDropdown({
         {label}
       </span>
       <button
-        aria-haspopup="listbox"
         aria-controls={listboxId}
+        aria-haspopup="listbox"
         aria-label={`${label}: ${selectedOption?.label ?? placeholder}${isOpen ? ' (open)' : ''}`}
         className="titan-dropdown-trigger"
         disabled={disabled}
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={() => {
+          setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0)
+          setIsOpen((current) => !current)
+        }}
         onKeyDown={handleKeyDown}
         ref={triggerRef}
         type="button"
@@ -149,26 +151,28 @@ export function TitanDropdown({
         <span className={selectedOption ? 'titan-dropdown-value' : 'titan-dropdown-placeholder'}>
           {selectedOption?.label ?? placeholder}
         </span>
-        <span className="titan-dropdown-caret" aria-hidden="true">⌄</span>
+        <span aria-hidden="true" className="titan-dropdown-caret">
+          v
+        </span>
       </button>
 
       {isOpen ? (
         <div
+          aria-labelledby={labelId}
           className="titan-dropdown-menu"
+          id={listboxId}
           onKeyDown={handleListboxKeyDown}
           role="listbox"
-          aria-labelledby={labelId}
-          id={listboxId}
         >
-          {options.map((option) => {
+          {options.map((option, optionIndex) => {
             const isSelected = option.value === value
-            const optionIndex = options.findIndex((item) => item.value === option.value)
-            const isHighlighted = optionIndex === highlightedIndex
+            const isHighlighted = optionIndex === activeIndex
 
             return (
               <button
                 key={option.value}
                 className={`titan-dropdown-option ${isSelected ? 'selected' : ''} ${isHighlighted ? 'highlighted' : ''}`}
+                data-selected={isSelected ? 'true' : 'false'}
                 onClick={() => {
                   onChange(option.value)
                   setIsOpen(false)
@@ -178,13 +182,12 @@ export function TitanDropdown({
                   optionRefs.current[optionIndex] = element
                 }}
                 role="option"
-                data-selected={isSelected ? 'true' : 'false'}
                 tabIndex={isHighlighted ? 0 : -1}
                 type="button"
               >
                 <span>{option.label}</span>
                 {isSelected ? <span className="sr-only">Selected</span> : null}
-                {isSelected ? <span className="titan-dropdown-check">✓</span> : null}
+                {isSelected ? <span className="titan-dropdown-check">OK</span> : null}
               </button>
             )
           })}

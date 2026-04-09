@@ -1,151 +1,125 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext } from 'react'
+import type { NotificationEntry, TitanState } from '../types'
 
-interface TitanContextState {
-  isAuthenticated: boolean
-  user: User | null
-  theme: 'light' | 'dark' | 'system'
-  preferences: {
-    showNotification: boolean
-    language: string
-    currency: string
-    theme: 'light' | 'dark' | 'system'
-  }
-  notifications: Notification[]
-  isLoading: boolean
-  setPreferences: (prefs: Partial<TitanContextState['preferences']>) => void
-  addNotification: (title: string, message: string) => void
-  dismissNotification: (id: number) => void
-  toggleTheme: () => void
-  toggleNotification: () => void
-  toggleLanguage: (lang: string) => void
-  toggleCurrency: (currency: string) => void
+export type AddSplitInput = {
+  amountPaise: number
+  description: string
+  participants: string[]
+  groupId?: string
 }
 
-interface User {
-  id: string
+export type UpdateSplitInput = AddSplitInput & {
+  splitId: string
+}
+
+export type UpdateGroupInput = {
+  groupId: string
   name: string
-  email: string
-  avatar: string
-  role: 'admin' | 'student' | 'recruiter' | 'guest'
+  members: string[]
 }
 
-interface Notification {
-  id: number
+export type IngestTransactionInput = {
+  merchant: string
+  amountRupees: number
+  type?: string
+}
+
+export type UpdateEmiInput = {
+  emiId: string
+  name: string
+  amountRupees: number
+}
+
+export type TitanActions = {
+  setCurrentUser: (name: string) => void
+  updateProfile: (payload: { savingsGoalRupees: number }) => void
+  updateBudget: (payload: {
+    monthlyLimitRupees: number
+    warningThresholdPercent: number
+  }) => void
+  addSplit: (payload: AddSplitInput) => void
+  updateSplit: (payload: UpdateSplitInput) => void
+  deleteSplit: (splitId: string) => void
+  settlePartial: (splitId: string, participantId: string, amountPaise: number) => void
+  settleFull: (splitId: string, participantId: string) => void
+  createGroup: (name: string, members: string[]) => void
+  updateGroup: (payload: UpdateGroupInput) => void
+  deleteGroup: (groupId: string) => void
+  approveTransaction: (transactionId: string) => void
+  deleteTransaction: (transactionId: string) => void
+  ingestTransaction: (payload: IngestTransactionInput) => void
+  addCashEntry: (amountRupees: number, entryType: 'IN' | 'OUT') => void
+  addEmi: (name: string, amountRupees: number) => void
+  updateEmi: (payload: UpdateEmiInput) => void
+  deleteEmi: (emiId: string) => void
+  triggerRentSplit: (amountPaise: number, members: string[], recurring: boolean) => void
+  addNotification: (
+    title: string,
+    message: string,
+    kind?: NotificationEntry['kind'],
+    href?: string,
+  ) => void
+  dismissNotification: (id: string) => void
+  markNotificationRead: (id: string) => void
+  markAllNotificationsRead: () => void
+  clearNotifications: (readOnly?: boolean) => void
+}
+
+export const TitanStateContext = createContext<TitanState | undefined>(undefined)
+export const TitanActionsContext = createContext<TitanActions | undefined>(undefined)
+export const TitanCurrentUserContext = createContext<string | null>(null)
+
+type TitanLegacyNotification = {
+  id: string
   title: string
   message: string
-  type: 'info' | 'success' | 'error' | 'warning'
+  type: NotificationEntry['kind']
   timestamp: number
+  read: boolean
+  href?: string
 }
 
-interface TitanContextType extends TitanContextState {
-  setPreferences: (prefs: Partial<TitanContextState['preferences']>) => void
-  addNotification: (title: string, message: string) => void
-  dismissNotification: (id: number) => void
-  toggleTheme: () => void
-  toggleNotification: () => void
-  toggleLanguage: (lang: string) => void
-  toggleCurrency: (currency: string) => void
-}
+export function useTitan() {
+  const state = useContext(TitanStateContext)
+  const actions = useContext(TitanActionsContext)
 
-const TitanContext = createContext<TitanContextType | undefined>(undefined)
-
-interface AppShellProps {}
-
-const AppShell: React.FC<AppShellProps> = () => {
-  const {
-    isAuthenticated,
-    user,
-    theme,
-    preferences,
-    notifications,
-  } = useContext(TitanContext)
-
-  const handleLogout = () => {
-    setIsMobileMenuOpen(false)
-    navigate('/login')
+  if (!state || !actions) {
+    throw new Error('useTitan must be used within TitanProvider')
   }
 
-  return (
-    <div className="app-shell">
-      <nav className="app-shell-nav">
-        <div className="nav-container">
-          <div className="logo">
-            <span className="logo-text">Project Titan</span>
-          </div>
-          <div className="nav-links">
-            <a href="/" className="nav-link">Home</a>
-            {isAuthenticated && (
-              <>
-                <a href="/profile" className="nav-link">Profile</a>
-                <a href="/settings" className="nav-link">Settings</a>
-              </>
-            )}
-          </div>
-          <button className="mobile-toggle" onClick={() => setIsMobileMenuOpen(true)}>
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-        </div>
+  const legacyNotifications: TitanLegacyNotification[] = state.notifications.map((notification) => ({
+    id: notification.id,
+    title: notification.title,
+    message: notification.message,
+    type: notification.kind,
+    timestamp: notification.createdAt,
+    read: notification.read,
+    href: notification.href,
+  }))
 
-        <div className={`auth-buttons ${!isAuthenticated ? 'unlocked' : ''}`}>
-          {!isAuthenticated && (
-            <button className="auth-btn">
-              <span>Sign In</span>
-            </button>
-          )}
-          {isAuthenticated && user?.role === 'admin' && (
-            <button className="logout-btn" onClick={handleLogout}>
-              Logout
-            </button>
-          )}
-        </div>
-      </nav>
-
-      <main className="app-shell-main">
-        <header className="app-shell-header">
-          <h1>Welcome to Project Titan</h1>
-          <p className="subtitle">Your complete project management platform</p>
-        </header>
-
-        <div className="dashboard">
-          <div className="dashboard-grid">
-            <div className="dashboard-card">
-              <div className="dashboard-icon">📊</div>
-              <h3>Dashboard Overview</h3>
-              <p>View your project analytics and insights</p>
-            </div>
-            {isAuthenticated && (
-              <div className="dashboard-card">
-                <div className="dashboard-icon">👤</div>
-                <h3>My Projects</h3>
-                <p>Manage your assigned projects</p>
-              </div>
-            )}
-          </div>
-
-          <div className="quick-actions">
-            <button className="quick-btn">
-              <span className="btn-icon">📁</span>
-              <span>Add New Project</span>
-            </button>
-            <button className="quick-btn">
-              <span className="btn-icon">📝</span>
-              <span>View Details</span>
-            </button>
-          </div>
-        </div>
-      </main>
-
-      {isMobileMenuOpen && (
-        <aside className="mobile-menu">
-          <div className="mobile-nav">
-            <p className="mobile-logout">Logout</p>
-          </div>
-        </aside>
-      )}
-    </div>
-  )
+  return {
+    ...state,
+    ...actions,
+    notifications: legacyNotifications,
+    isAuthenticated: Boolean(state.currentUser),
+    isLoading: false,
+    user: state.currentUser
+      ? {
+          id: state.currentUser.toLowerCase().replace(/\s+/g, '-'),
+          name: state.currentUser,
+          email: '',
+          avatar: '',
+          role: 'owner' as const,
+        }
+      : null,
+    theme: 'light' as const,
+    preferences: {
+      showNotification: true,
+      language: 'en-IN',
+      currency: 'INR',
+      theme: 'light' as const,
+    },
+    profile: state.profile,
+    budget: state.budget,
+  }
 }
-
-export { AppShell }

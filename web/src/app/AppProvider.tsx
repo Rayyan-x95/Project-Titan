@@ -1,41 +1,17 @@
-import { createContext } from 'react'
-import { Provider as TanStackProvider } from '@tanstack/react-query'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider, useAuth } from './providers/AuthProvider'
+import type { ReactNode } from 'react'
+import { CurrencyProvider } from '../features/currency/components/CurrencyProvider'
+import { TitanProvider } from '../state/TitanStore'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000, // 1 minute
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-})
-
-interface AppProviderProps {
-  children: React.ReactNode
+type AppProviderProps = {
+  children: ReactNode
 }
 
-export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
+export function AppProvider({ children }: AppProviderProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Provider>
-          {children}
-        </Provider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <TitanProvider>
+      <CurrencyProvider>{children}</CurrencyProvider>
+    </TitanProvider>
   )
-}
-
-export const useAuth = () => {
-  const { data, isLoading } = useAuth()
-  return {
-    isAuthenticated: data?.isAuthenticated,
-    user: data?.user,
-    isLoading,
-  }
 }
 
 export default AppProvider

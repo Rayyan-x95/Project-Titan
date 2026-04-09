@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react'
 import { m, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { getHealthScore, mapReverseInsight, getSpendTrends } from '../lib/finance'
+import { getBudgetSummary, getCurrentMonthTrackedSpendRupees, getHealthScore, mapReverseInsight, getSpendTrends } from '../lib/finance'
 import type { TitanState } from '../types'
 
 export const HealthInsightsSection = memo(({ state }: { state: TitanState }) => {
@@ -18,6 +18,14 @@ export const HealthInsightsSection = memo(({ state }: { state: TitanState }) => 
   const reverseInsight = useMemo(() => {
     return mapReverseInsight(trends[0]?.totalRupees ?? 0)
   }, [trends])
+
+  const budgetSummary = useMemo(() => {
+    return getBudgetSummary(
+      state.budget.monthlyLimitRupees,
+      getCurrentMonthTrackedSpendRupees(state),
+      state.budget.warningThresholdPercent,
+    )
+  }, [state])
 
   return (
     <div className="stack-column">
@@ -47,6 +55,19 @@ export const HealthInsightsSection = memo(({ state }: { state: TitanState }) => 
         <p>This week feels like {reverseInsight.valueInContext}.</p>
         <Link className="inline-link" to="/insights">
           See insights hub
+        </Link>
+      </article>
+
+      <article className="glass-panel compact-panel">
+        <p className="eyebrow">Budget</p>
+        <strong>
+          {budgetSummary.status === 'NOT_SET'
+            ? 'Not set'
+            : `${budgetSummary.percentUsed}% used`}
+        </strong>
+        <p>{budgetSummary.recommendation}</p>
+        <Link className="inline-link" to="/budget">
+          Open budget planner
         </Link>
       </article>
     </div>

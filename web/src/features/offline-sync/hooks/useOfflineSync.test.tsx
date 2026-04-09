@@ -2,8 +2,10 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useOfflineSync } from './useOfflineSync'
 
-const flushOfflineQueue = vi.fn()
-const getOfflineQueue = vi.fn()
+const { flushOfflineQueue, getOfflineQueue } = vi.hoisted(() => ({
+  flushOfflineQueue: vi.fn(),
+  getOfflineQueue: vi.fn(),
+}))
 
 vi.mock('../services/offlineQueue', () => ({
   flushOfflineQueue,

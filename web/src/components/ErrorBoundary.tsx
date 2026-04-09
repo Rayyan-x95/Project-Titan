@@ -1,17 +1,18 @@
-import React from 'react'
-import { ReactNode } from 'react'
+import React, { type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-interface ErrorBoundaryProps {
+type ErrorBoundaryProps = {
   children: ReactNode
+  fallback?: ReactNode
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void
 }
 
-interface ErrorBoundaryState {
+type ErrorBoundaryState = {
   hasError: boolean
   error: Error | null
 }
 
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = {
@@ -24,36 +25,29 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.props.onError?.(error, errorInfo)
     console.error('ErrorBoundary caught error:', error, errorInfo)
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo)
-    }
   }
 
   render() {
-    if (this.state.hasError) {
-      const { error } = this.state
-      if (this.props.onError) {
-        return (
-          <div className="error-boundary">
-            <h2>Error</h2>
-            <p>Something went wrong. Please try again.</p>
-          </div>
-        )
-      }
-      return (
-        <div className="error-boundary">
-          <h2>Error</h2>
-          <p className="error-message">{error?.message}</p>
-          <Link to="/" className="back-link">
-            Go Home
-          </Link>
-        </div>
-      )
+    if (!this.state.hasError) {
+      return this.props.children
     }
 
-    return this.props.children
+    if (this.props.fallback) {
+      return this.props.fallback
+    }
+
+    return (
+      <div className="error-boundary">
+        <h2>Something went wrong.</h2>
+        <p className="error-message">{this.state.error?.message ?? 'Unknown error'}</p>
+        <Link className="back-link" to="/">
+          Back to Titan
+        </Link>
+      </div>
+    )
   }
 }
 

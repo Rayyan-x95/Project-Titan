@@ -1,36 +1,47 @@
-import React from 'react'
-import { useTitan } from '../state/titan-context'
+import { Link } from 'react-router-dom'
+import { useTitanActions, useTitanState } from '../state/useTitan'
 
-const Notifications = () => {
-  const { notifications, close, dismiss } = useTitan()
+export function Notifications() {
+  const state = useTitanState()
+  const { dismissNotification } = useTitanActions()
+  const notifications = state.notifications.slice(0, 3)
+
+  if (notifications.length === 0) {
+    return null
+  }
 
   return (
-    <div className="notifications-bar">
-      <div className="notifications-icon">
-        <span className="icon">🔔</span>
-      </div>
+    <section className="notifications-bar" aria-live="polite">
       <div className="notifications-content">
-        <span className="notification-count">
-          {notifications.filter(n => n.type === 'info').length}
-        </span>
+        <span className="notification-count">{notifications.length}</span>
         <div className="notifications-list">
-          {notifications.map(n => (
-            <div
-              key={n.id}
-              className={`notification-item ${n.type}`}
-              onClick={close}
+          {notifications.map((notification) => (
+            <article
+              key={notification.id}
+              className={`notification-item notification-${notification.kind}`}
             >
-              <span className="notification-title">{n.title}</span>
-              <span className="notification-message">{n.message}</span>
-            </div>
+              <div>
+                <strong>{notification.title}</strong>
+                <span>{notification.message}</span>
+              </div>
+              <div className="row-actions">
+                {notification.href ? (
+                  <Link className="inline-link" to={notification.href}>
+                    Open
+                  </Link>
+                ) : null}
+                <button
+                  className="button button-ghost button-small"
+                  onClick={() => dismissNotification(notification.id)}
+                  type="button"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </article>
           ))}
         </div>
-        <div className="notification-close-btn" onClick={dismiss}>
-          <span className="btn">✕</span>
-        </div>
       </div>
-    </div>
+    </section>
   )
 }
-
-export { Notifications }

@@ -3,13 +3,19 @@ import { GroupsSection } from '../components/GroupsSection'
 import { HealthInsightsSection } from '../components/HealthInsightsSection'
 import { NetBalanceSection } from '../components/NetBalanceSection'
 import { PeopleSection } from '../components/PeopleSection'
-import { formatDate } from '../lib/finance'
+import { formatDate, formatRupees, getBudgetSummary, getCurrentMonthTrackedSpendRupees } from '../lib/finance'
 import { useTitanState } from '../state/useTitan'
 import { Link } from 'react-router-dom'
 
 export default function HomePage() {
   const state = useTitanState()
   const recentNotifications = state.notifications.slice(0, 2)
+  const monthlySpend = getCurrentMonthTrackedSpendRupees(state)
+  const budgetSummary = getBudgetSummary(
+    state.budget.monthlyLimitRupees,
+    monthlySpend,
+    state.budget.warningThresholdPercent,
+  )
 
   return (
     <div className="page home-page">
@@ -44,6 +50,43 @@ export default function HomePage() {
         <div className="feature-grid">
           <FeatureGrid />
         </div>
+      </section>
+
+      <section className="glass-panel">
+        <div className="panel-head">
+          <div>
+            <p className="eyebrow">Budget pulse</p>
+            <h3>
+              {budgetSummary.status === 'NOT_SET'
+                ? 'Set a monthly budget'
+                : `${budgetSummary.percentUsed}% used this month`}
+            </h3>
+          </div>
+          <Link className="inline-link" to="/budget">
+            Open budget
+          </Link>
+        </div>
+
+        <div className="metric-grid">
+          <div>
+            <span>Tracked spend</span>
+            <strong>{formatRupees(monthlySpend)}</strong>
+          </div>
+          <div>
+            <span>Limit</span>
+            <strong>{formatRupees(budgetSummary.monthlyLimitRupees)}</strong>
+          </div>
+          <div>
+            <span>Remaining</span>
+            <strong>{formatRupees(budgetSummary.remainingRupees)}</strong>
+          </div>
+          <div>
+            <span>Status</span>
+            <strong>{budgetSummary.status}</strong>
+          </div>
+        </div>
+
+        <p className="brand-copy">{budgetSummary.recommendation}</p>
       </section>
 
       <section className="content-grid">

@@ -1,30 +1,24 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
-const NotFound = () => {
-  const navigate = useNavigate()
-
+export function NotFound() {
   return (
     <div className="not-found">
       <div className="not-found-content">
         <div className="not-found-icon">
-          <span className="icon">🚫</span>
+          <span className="icon" aria-hidden="true">
+            404
+          </span>
         </div>
-        <h1>404 - Page Not Found</h1>
+        <h1>Page not found</h1>
+        <p>The page you are looking for does not exist in this Titan build.</p>
         <p>
-          The page you're looking for doesn't exist.
+          Try the <Link to="/">home dashboard</Link>, <Link to="/groups">groups</Link>, or{' '}
+          <Link to="/history">history</Link>.
         </p>
-        <p>
-          Did you mean <Link to="/dashboard">dashboard</Link> or <Link to="/projects">projects</Link>?
-        </p>
-        <Link
-          to="/"
-          className="back-link"
-        >
-          Back to Home
+        <Link className="back-link" to="/">
+          Back to home
         </Link>
       </div>
     </div>
   )
 }
-
-export { NotFound }

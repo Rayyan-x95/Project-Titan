@@ -57,11 +57,16 @@ export const NetBalanceSection = memo(({ state }: { state: TitanState }) => {
           </div>
           <h3>No events yet</h3>
           <p className="hero-copy">
-            Create an event to start splitting expenses with friends.
+            Set up your profile, then create an event to start splitting expenses with friends.
           </p>
-          <Link className="button button-primary onboarding-cta" to="/groups/new">
-            Create First Event
-          </Link>
+          <div className="button-row">
+            <Link className="button button-secondary onboarding-cta" to="/profile">
+              Set up profile
+            </Link>
+            <Link className="button button-primary onboarding-cta" to="/groups/new">
+              Create first event
+            </Link>
+          </div>
         </article>
       </section>
     )
@@ -115,6 +120,9 @@ export const NetBalanceSection = memo(({ state }: { state: TitanState }) => {
             Your profile name powers every payer-based calculation. Once that is
             saved, Titan can start building balances from the real entries you add.
           </p>
+          <Link className="inline-link" to="/profile">
+            Open profile setup
+          </Link>
           <div className="metric-grid">
             <div>
               <span>1</span>

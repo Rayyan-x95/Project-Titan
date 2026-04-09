@@ -1,37 +1,51 @@
-import React from 'react'
-import { useTitan } from '../state/titan-context'
+import { useEffect, useState } from 'react'
 
-const PwaCard = () => {
-  const { notifications, addNotification } = useTitan()
-
-  const handleReconnect = () => {
-    if (typeof navigator !== 'undefined') {
-      navigator.connection.saveData = () => {}
-      navigator.connection.effectiveType = 'discrete'
-    }
-    addNotification('Offline', 'Connection restored')
-    setTimeout(() => addNotification('Connected', 'Network connection restored'), 500)
+type NetworkNavigator = Navigator & {
+  connection?: {
+    effectiveType?: string
   }
+}
+
+function getNetworkType() {
+  if (typeof navigator === 'undefined') {
+    return 'unknown'
+  }
+
+  return (navigator as NetworkNavigator).connection?.effectiveType ?? 'online'
+}
+
+export function PwaCard() {
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator === 'undefined' ? true : navigator.onLine,
+  )
+  const [networkType, setNetworkType] = useState(getNetworkType)
+
+  useEffect(() => {
+    function handleStatusChange() {
+      setIsOnline(navigator.onLine)
+      setNetworkType(getNetworkType())
+    }
+
+    window.addEventListener('online', handleStatusChange)
+    window.addEventListener('offline', handleStatusChange)
+
+    return () => {
+      window.removeEventListener('online', handleStatusChange)
+      window.removeEventListener('offline', handleStatusChange)
+    }
+  }, [])
 
   return (
     <div className="pwa-card">
       <div className="pwa-icon">
-        <span className="wifi">📶</span>
+        <span className="wifi" aria-hidden="true">
+          {isOnline ? 'Online' : 'Offline'}
+        </span>
       </div>
       <div className="pwa-status">
-        <span className="offline-label">Offline</span>
-        <span className="status">
-          {navigator.connection.effectiveType || 'none'}
-        </span>
-        <button
-          onClick={handleReconnect}
-          className="reconnect-btn"
-        >
-          <span className="btn">↺</span>
-        </button>
+        <span className="offline-label">{isOnline ? 'Connection active' : 'Offline mode'}</span>
+        <span className="status">{networkType}</span>
       </div>
     </div>
   )
 }
-
-export { PwaCard }

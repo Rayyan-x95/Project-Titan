@@ -1,37 +1,49 @@
-interface OfflineIndicatorProps {
+import { useEffect, useState } from 'react'
+
+type OfflineIndicatorProps = {
   show: boolean
 }
 
-const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({ show }) => {
-  const { notifications, addNotification } = useTitan()
-
-  const handleReconnect = () => {
-    if (typeof navigator !== 'undefined') {
-      navigator.connection.saveData = () => {}
-      navigator.connection.effectiveType = 'discrete'
-    }
-    addNotification('Offline', 'Connection restored')
-    setTimeout(() => addNotification('Connected', 'Network connection restored'), 500)
+type NetworkNavigator = Navigator & {
+  connection?: {
+    effectiveType?: string
   }
+}
 
-  if (!show) return null
+export function OfflineIndicator({ show }: OfflineIndicatorProps) {
+  const [networkType, setNetworkType] = useState(
+    () => (navigator as NetworkNavigator).connection?.effectiveType ?? 'unknown',
+  )
+
+  useEffect(() => {
+    function handleChange() {
+      setNetworkType((navigator as NetworkNavigator).connection?.effectiveType ?? 'unknown')
+    }
+
+    window.addEventListener('online', handleChange)
+    window.addEventListener('offline', handleChange)
+
+    return () => {
+      window.removeEventListener('online', handleChange)
+      window.removeEventListener('offline', handleChange)
+    }
+  }, [])
+
+  if (!show) {
+    return null
+  }
 
   return (
     <div className="offline-indicator">
       <div className="offline-icon">
-        <span className="wifi">📶</span>
+        <span className="wifi" aria-hidden="true">
+          Offline
+        </span>
       </div>
       <div className="offline-text">
-        <span className="offline-label">Offline</span>
-        <span className="offline-status">
-          {navigator.connection.effectiveType || 'none'}
-        </span>
-        <button onClick={handleReconnect} className="reconnect-btn">
-          <span className="btn">↺</span>
-        </button>
+        <span className="offline-label">Offline mode enabled</span>
+        <span className="offline-status">{networkType}</span>
       </div>
     </div>
   )
 }
-
-export { OfflineIndicator }
