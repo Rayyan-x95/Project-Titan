@@ -19,18 +19,24 @@ export const HealthInsightsSection = memo(({ state }: { state: TitanState }) => 
     return mapReverseInsight(trends[0]?.totalRupees ?? 0)
   }, [trends])
 
+  const trackedSpendRupees = useMemo(() => {
+    return getCurrentMonthTrackedSpendRupees({
+      splits: state.splits,
+      cashEntries: state.cashEntries,
+      transactions: state.transactions,
+    })
+  }, [state.splits, state.cashEntries, state.transactions])
+
   const budgetSummary = useMemo(() => {
     return getBudgetSummary(
       state.budget.monthlyLimitRupees,
-      getCurrentMonthTrackedSpendRupees(state),
+      trackedSpendRupees,
       state.budget.warningThresholdPercent,
     )
   }, [
     state.budget.monthlyLimitRupees,
     state.budget.warningThresholdPercent,
-    state.splits,
-    state.cashEntries,
-    state.transactions,
+    trackedSpendRupees,
   ])
 
   return (

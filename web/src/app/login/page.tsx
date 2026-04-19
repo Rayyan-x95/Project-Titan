@@ -59,7 +59,9 @@ export default function LoginPage() {
     }
 
     if (isDevAuthEnabled) {
-      // TODO(TITAN-AUTH-101): Remove this development-only auth shortcut after real backend auth rollout.
+      // Development auth mode: skips backend authentication for local testing.
+      // In production (VITE_ENABLE_DEV_AUTH unset or 'false'), this branch is disabled
+      // and the full authenticateUser() flow is required.
       const fallbackName = email.split('@')[0]?.trim() || email
       setCurrentUser(fallbackName)
       addNotification('Welcome back', `Signed in as ${fallbackName}.`, 'success', '/')

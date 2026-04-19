@@ -39,12 +39,12 @@ export default function App() {
           <GoogleAnalytics />
           <BrowserRouter>
             <Routes>
+              <Route path="login" element={<LoginPage />} />
+              <Route path="register" element={<RegistrationPage />} />
               <Route element={<AppShell />}>
                 <Route path="expense-tracker-india" element={<ExpenseTrackerIndiaPage />} />
                 <Route path="budget-app-for-students" element={<BudgetAppForStudentsPage />} />
                 <Route path="split-expense-app-india" element={<SplitExpenseAppIndiaPage />} />
-                <Route path="login" element={<LoginPage />} />
-                <Route path="register" element={<RegistrationPage />} />
                 <Route element={<ProtectedRoute />}>
                   <Route index element={<HomePage />} />
                   <Route path="history" element={<HistoryPage />} />

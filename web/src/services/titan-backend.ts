@@ -31,6 +31,26 @@ async function flushLatestState() {
   await titanDB.saveState(stateToPersist)
 }
 
+function flushNow() {
+  if (saveTimer) {
+    window.clearTimeout(saveTimer)
+    saveTimer = null
+  }
+  if (latestPendingState) {
+    const stateToPersist = latestPendingState
+    latestPendingState = null
+    saveInFlight = saveInFlight
+      .then(() => titanDB.saveState(stateToPersist))
+      .catch((error) => {
+        console.warn('Failed to save Titan state:', error)
+      })
+  }
+}
+
+window.addEventListener('pagehide', () => {
+  flushNow()
+})
+
 export const titanBackend: TitanBackend = {
   async loadState() {
     if (cachedState) {

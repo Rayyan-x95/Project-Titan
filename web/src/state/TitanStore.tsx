@@ -914,7 +914,12 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       enqueueOfflineOperation({
         type: 'ADD_SPLIT',
         entityKey: `split:${payload.groupId ?? 'ungrouped'}:${payload.description}`,
-        payload: payload as unknown as Record<string, unknown>,
+        payload: {
+          amountPaise: payload.amountPaise,
+          description: payload.description,
+          participants: payload.participants,
+          groupId: payload.groupId,
+        },
       })
       startTransition(() => {
         dispatch({ type: 'ADD_SPLIT', payload })
@@ -924,7 +929,13 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       enqueueOfflineOperation({
         type: 'UPDATE_SPLIT',
         entityKey: `split:${payload.splitId}`,
-        payload: payload as unknown as Record<string, unknown>,
+        payload: {
+          splitId: payload.splitId,
+          amountPaise: payload.amountPaise,
+          description: payload.description,
+          participants: payload.participants,
+          groupId: payload.groupId,
+        },
       })
       startTransition(() => {
         dispatch({ type: 'UPDATE_SPLIT', splitId: payload.splitId, payload })
@@ -964,7 +975,11 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       enqueueOfflineOperation({
         type: 'UPDATE_GROUP',
         entityKey: `group:${payload.groupId}`,
-        payload: payload as unknown as Record<string, unknown>,
+        payload: {
+          groupId: payload.groupId,
+          name: payload.name,
+          members: payload.members,
+        },
       })
       startTransition(() => {
         dispatch({ type: 'UPDATE_GROUP', ...payload })
@@ -1029,7 +1044,11 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       enqueueOfflineOperation({
         type: 'UPDATE_EMI',
         entityKey: `emi:${payload.emiId}`,
-        payload: payload as unknown as Record<string, unknown>,
+        payload: {
+          emiId: payload.emiId,
+          name: payload.name,
+          amountRupees: payload.amountRupees,
+        },
       })
       startTransition(() => {
         dispatch({ type: 'UPDATE_EMI', ...payload })

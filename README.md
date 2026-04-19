@@ -26,10 +26,12 @@ If Titan helps your workflow, drop a star on this repo.
 ## Why Titan?
 
 ### The problem
+
 Most users juggle 5 to 8 different apps for money, reminders, tasks, and habits.
 That fragmentation kills consistency.
 
 ### The solution
+
 Titan unifies the daily operating system:
 
 - Track spending and budgets

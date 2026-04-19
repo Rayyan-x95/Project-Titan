@@ -65,11 +65,11 @@ export function sanitizeParticipantList(participants: string[], paidBy?: string)
 export function createParticipantShareMap(
   participants: string[],
   amountPaise: number,
-) {
+): Record<string, number> {
   const totalPaise = Math.max(Math.round(amountPaise), 0)
 
   if (participants.length === 0 || totalPaise <= 0) {
-    return {} as Record<string, number>
+    return {}
   }
 
   const baseShare = Math.floor(totalPaise / participants.length)
@@ -90,8 +90,8 @@ export function normalizeParticipantSettlementMap(
   participantShares: Record<string, number>,
   participantSettlements?: Record<string, number>,
   legacySettledAmountPaise = 0,
-) {
-  const normalizedSettlements = Object.fromEntries(
+): Record<string, number> {
+  const normalizedSettlements: Record<string, number> = Object.fromEntries(
     participants.map((participant) => {
       const share = participantShares[participant] ?? 0
       const existingSettlement = Math.round(
@@ -100,7 +100,7 @@ export function normalizeParticipantSettlementMap(
 
       return [participant, Math.min(share, existingSettlement)]
     }),
-  ) as Record<string, number>
+  )
 
   if (sumPaise(Object.values(normalizedSettlements)) > 0 || legacySettledAmountPaise <= 0) {
     return normalizedSettlements

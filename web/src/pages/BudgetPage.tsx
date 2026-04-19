@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
 import { getBudgetSummary, getCurrentMonthTrackedSpendRupees, formatRupees } from '../lib/finance'
@@ -18,6 +18,12 @@ export function BudgetPage() {
     trackedSpendRupees,
     state.budget.warningThresholdPercent,
   )
+
+  useEffect(() => {
+    if (!showSaved) return
+    const timer = setTimeout(() => setShowSaved(false), 3000)
+    return () => clearTimeout(timer)
+  }, [showSaved])
 
   return (
     <div className="page">

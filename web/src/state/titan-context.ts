@@ -97,7 +97,9 @@ export function useTitan() {
     href: notification.href,
   }))
 
-  // TODO(TITAN-AUTH-102): Replace this compatibility id with a persistent stable id from state.currentUserId.
+  // Compatibility layer for legacy user id derivation.
+  // Future auth system should provide state.currentUserId directly.
+  // For now, derive a stable slug from currentUser for local state ownership.
   const legacyUserId = state.currentUser
     ? state.currentUser
         .toLowerCase()

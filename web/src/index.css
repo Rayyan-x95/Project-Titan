@@ -76,6 +76,14 @@ body {
   font-weight: 600;
 }
 
+.navbar .nav-link {
+  color: #c9d2e2;
+}
+
+.navbar .nav-link.active {
+  color: #ffffff;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;
@@ -92,6 +100,11 @@ body {
   padding: 1.5rem 2rem;
   margin-top: auto;
   text-align: center;
+}
+
+.footer-content {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Mobile Menu Toggle */
@@ -318,6 +331,158 @@ body {
   background: #f0f8ff;
 }
 
+/* Shell and Auth Views */
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-areas:
+    'header header'
+    'nav nav'
+    'offline offline'
+    'notifications notifications'
+    'main aside'
+    'footer footer';
+  background: #0b0f12;
+  color: #e6eef3;
+}
+
+.app-shell > .header {
+  grid-area: header;
+}
+
+.app-shell > .navbar {
+  grid-area: nav;
+}
+
+.app-shell > .offline-status-bar {
+  grid-area: offline;
+}
+
+.app-shell > .notifications {
+  grid-area: notifications;
+}
+
+.app-shell-main {
+  grid-area: main;
+  width: 100%;
+  padding: 2rem;
+}
+
+.app-shell-aside {
+  grid-area: aside;
+  padding: 1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.app-shell > .footer {
+  grid-area: footer;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #121927;
+}
+
+.navbar-left,
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.header-copy {
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.logo-text {
+  color: #b99cff;
+}
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(1200px 520px at 10% -15%, rgba(114, 224, 227, 0.18), transparent 62%),
+    radial-gradient(900px 440px at 100% 0%, rgba(88, 255, 215, 0.14), transparent 58%),
+    #0b0f12;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(20, 28, 42, 0.9);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header {
+  margin-bottom: 1rem;
+}
+
+.auth-header h1 {
+  font-size: 2rem;
+  line-height: 1.15;
+  color: #f8fafc;
+}
+
+.auth-header p {
+  margin-top: 0.25rem;
+  color: #94a3b8;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.form-group label {
+  color: #cbd5e1;
+  font-size: 0.92rem;
+}
+
+.form-group input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.8);
+  color: #f8fafc;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: #72e0e3;
+  box-shadow: 0 0 0 3px rgba(114, 224, 227, 0.2);
+}
+
+.auth-btn {
+  width: 100%;
+  margin-top: 0.35rem;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: #031322;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #72e0e3, #58ffd7);
+}
+
 .quick-btn .btn-icon {
   font-size: 1.5rem;
   margin-right: 0.5rem;
@@ -370,6 +535,27 @@ body {
 @media (max-width: 768px) {
   .mobile-toggle {
     display: flex;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'header'
+      'nav'
+      'offline'
+      'notifications'
+      'main'
+      'aside'
+      'footer';
+  }
+
+  .app-shell-main {
+    padding: 1rem;
+  }
+
+  .app-shell-aside {
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .nav-links,
