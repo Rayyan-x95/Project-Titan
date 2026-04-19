@@ -53,7 +53,12 @@ self.addEventListener('fetch', (event) => {
   }
 
   const url = new URL(request.url)
-  const shouldCacheNavigation = url.search.length === 0 && !['/sitemap.xml', '/robots.txt'].includes(url.pathname)
+  const shouldCacheNavigation = url.search.length === 0
+
+  // Let SEO assets go directly to network/browser behavior.
+  if (url.pathname === '/sitemap.xml' || url.pathname === '/robots.txt') {
+    return
+  }
 
   const isSameOrigin = url.origin === self.location.origin
   const isExternalFontRequest = FONT_ORIGINS.includes(url.origin)
