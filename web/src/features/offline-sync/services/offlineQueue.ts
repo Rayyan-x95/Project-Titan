@@ -1,6 +1,19 @@
 import type { OfflineOperation } from '../utils/offlineTypes'
 
 const QUEUE_KEY = 'titan-offline-queue'
+const REMOTE_SYNC_ENDPOINT = import.meta.env.VITE_SYNC_API_URL?.trim()
+
+export type OfflineSyncMode = 'cloud' | 'local-only'
+
+export type OfflineSyncResult = {
+  synced: number
+  remaining: number
+  mode: OfflineSyncMode
+}
+
+export function isRemoteSyncConfigured() {
+  return Boolean(REMOTE_SYNC_ENDPOINT)
+}
 
 function readQueue() {
   try {
@@ -38,19 +51,32 @@ export function enqueueOfflineOperation(operation: Omit<OfflineOperation, 'id' |
   return dedupedQueue.length
 }
 
-export async function flushOfflineQueue() {
+export async function flushOfflineQueue(): Promise<OfflineSyncResult> {
   const queue = readQueue()
   if (queue.length === 0) {
-    return { synced: 0, remaining: 0 }
+    return { synced: 0, remaining: 0, mode: isRemoteSyncConfigured() ? 'cloud' : 'local-only' }
   }
 
   try {
-    // Placeholder for remote sync integration (Supabase/API).
-    // Local-first behavior keeps user state already applied.
-    await Promise.resolve()
+    if (!REMOTE_SYNC_ENDPOINT) {
+      return { synced: 0, remaining: queue.length, mode: 'local-only' }
+    }
+
+    const response = await fetch(REMOTE_SYNC_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ operations: queue }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Remote sync failed with status ${response.status}`)
+    }
+
     writeQueue([])
-    return { synced: queue.length, remaining: 0 }
+    return { synced: queue.length, remaining: 0, mode: 'cloud' }
   } catch {
-    return { synced: 0, remaining: queue.length }
+    return { synced: 0, remaining: queue.length, mode: isRemoteSyncConfigured() ? 'cloud' : 'local-only' }
   }
 }

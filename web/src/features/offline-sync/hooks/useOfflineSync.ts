@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { flushOfflineQueue, getOfflineQueue } from '../services/offlineQueue'
+import { flushOfflineQueue, getOfflineQueue, isRemoteSyncConfigured } from '../services/offlineQueue'
 
 export function useOfflineSync() {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine)
   const [pendingCount, setPendingCount] = useState(() => getOfflineQueue().length)
   const [isSyncing, setIsSyncing] = useState(false)
+  const [syncMode, setSyncMode] = useState<'cloud' | 'local-only'>(() =>
+    isRemoteSyncConfigured() ? 'cloud' : 'local-only',
+  )
   const inFlightSyncRef = useRef<Promise<void> | null>(null)
 
   function runSync() {
@@ -15,6 +18,7 @@ export function useOfflineSync() {
     const syncPromise = flushOfflineQueue()
       .then((result) => {
         setPendingCount(result.remaining)
+        setSyncMode(result.mode)
       })
       .catch((error) => {
         console.warn('Failed to flush offline queue:', error)
@@ -74,6 +78,7 @@ export function useOfflineSync() {
     isOnline,
     pendingCount,
     isSyncing,
+    syncMode,
     retrySync,
   }
 }

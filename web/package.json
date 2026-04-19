@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-     "prebuild": "node scripts/generate-sitemap.js",
+    "prebuild": "node scripts/generate-sitemap.js",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -17,18 +17,19 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "framer-motion": "^12.38.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@types/node": "^24.12.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.12.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -37,7 +38,7 @@
     "jsdom": "^26.1.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.0",
-    "vitest": "^2.1.9",
-    "vite": "^8.0.1"
+    "vite": "^8.0.1",
+    "vitest": "^2.1.9"
   }
 }

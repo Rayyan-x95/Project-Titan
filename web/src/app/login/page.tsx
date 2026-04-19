@@ -1,9 +1,12 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useTitan } from '../../state/titan-context'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { authenticateLocalAccount } from '../../services/local-auth'
+import { useTitanActions, useTitanHydrated, useTitanState } from '../../state/useTitan'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const isDevAuthEnabled = import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEV_AUTH !== 'false'
+const authApiEndpoint = import.meta.env.VITE_AUTH_API_URL?.trim()
+const hasAuthApiEndpoint = Boolean(authApiEndpoint)
 
 type AuthResponse = {
   user?: {
@@ -13,7 +16,11 @@ type AuthResponse = {
 }
 
 async function authenticateUser(email: string, password: string) {
-  const response = await fetch('/api/auth/login', {
+  if (!authApiEndpoint) {
+    return null
+  }
+
+  const response = await fetch(authApiEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -22,6 +29,11 @@ async function authenticateUser(email: string, password: string) {
   })
 
   if (!response.ok) {
+    return null
+  }
+
+  const contentType = response.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
     return null
   }
 
@@ -36,11 +48,31 @@ async function authenticateUser(email: string, password: string) {
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { addNotification, setCurrentUser } = useTitan()
+  const location = useLocation()
+  const state = useTitanState()
+  const hasHydrated = useTitanHydrated()
+  const { addNotification, setCurrentUser } = useTitanActions()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
+
+  const fromLocation = (location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null)?.from
+  const redirectTarget = fromLocation?.pathname
+    ? `${fromLocation.pathname}${fromLocation.search ?? ''}${fromLocation.hash ?? ''}`
+    : '/'
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return
+    }
+
+    if (!state.currentUser.trim()) {
+      return
+    }
+
+    navigate(redirectTarget, { replace: true })
+  }, [hasHydrated, navigate, redirectTarget, state.currentUser])
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -64,12 +96,35 @@ export default function LoginPage() {
       // and the full authenticateUser() flow is required.
       const fallbackName = email.split('@')[0]?.trim() || email
       setCurrentUser(fallbackName)
-      addNotification('Welcome back', `Signed in as ${fallbackName}.`, 'success', '/')
-      navigate('/')
+      addNotification('Welcome back', `Signed in as ${fallbackName}.`, 'success', redirectTarget)
+      navigate(redirectTarget)
       return
     }
 
     try {
+      if (!hasAuthApiEndpoint) {
+        const localAccount = await authenticateLocalAccount(email, password)
+
+        if (!localAccount) {
+          addNotification(
+            'Sign-in failed',
+            'No cloud auth endpoint is configured and no matching local account was found.',
+            'warning',
+          )
+          return
+        }
+
+        setCurrentUser(localAccount.displayName)
+        addNotification(
+          'Signed in locally',
+          `Welcome back, ${localAccount.displayName}. This device is using local-only auth.`,
+          'info',
+          redirectTarget,
+        )
+        navigate(redirectTarget)
+        return
+      }
+
       const authResult = await authenticateUser(email, password)
 
       if (!authResult) {
@@ -78,8 +133,8 @@ export default function LoginPage() {
       }
 
       setCurrentUser(authResult.displayName)
-      addNotification('Welcome back', `Signed in as ${authResult.displayName}.`, 'success', '/')
-      navigate('/')
+      addNotification('Welcome back', `Signed in as ${authResult.displayName}.`, 'success', redirectTarget)
+      navigate(redirectTarget)
     } catch {
       addNotification('Sign-in failed', 'Unable to authenticate with the server.', 'warning')
     }

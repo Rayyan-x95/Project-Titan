@@ -68,6 +68,7 @@ export type TitanActions = {
 export const TitanStateContext = createContext<TitanState | undefined>(undefined)
 export const TitanActionsContext = createContext<TitanActions | undefined>(undefined)
 export const TitanCurrentUserContext = createContext<string | null>(null)
+export const TitanHydrationContext = createContext<boolean | undefined>(undefined)
 
 type TitanLegacyNotification = {
   id: string

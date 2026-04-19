@@ -2,6 +2,7 @@ import { useContext } from 'react'
 import {
   TitanActionsContext,
   TitanCurrentUserContext,
+  TitanHydrationContext,
   TitanStateContext,
 } from './titan-context'
 
@@ -33,6 +34,16 @@ export function useTitanCurrentUser() {
   }
 
   return currentUser
+}
+
+export function useTitanHydrated() {
+  const hydrated = useContext(TitanHydrationContext)
+
+  if (hydrated === undefined) {
+    throw new Error('useTitanHydrated must be used within TitanProvider')
+  }
+
+  return hydrated
 }
 
 export function useTitan() {

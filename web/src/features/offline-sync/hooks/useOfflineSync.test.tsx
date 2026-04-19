@@ -2,14 +2,16 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useOfflineSync } from './useOfflineSync'
 
-const { flushOfflineQueue, getOfflineQueue } = vi.hoisted(() => ({
+const { flushOfflineQueue, getOfflineQueue, isRemoteSyncConfigured } = vi.hoisted(() => ({
   flushOfflineQueue: vi.fn(),
   getOfflineQueue: vi.fn(),
+  isRemoteSyncConfigured: vi.fn(),
 }))
 
 vi.mock('../services/offlineQueue', () => ({
   flushOfflineQueue,
   getOfflineQueue,
+  isRemoteSyncConfigured,
 }))
 
 describe('useOfflineSync', () => {
@@ -19,7 +21,9 @@ describe('useOfflineSync', () => {
     workerListeners = new Set()
     flushOfflineQueue.mockReset()
     getOfflineQueue.mockReset()
+    isRemoteSyncConfigured.mockReset()
     getOfflineQueue.mockReturnValue([{ id: '1' }])
+    isRemoteSyncConfigured.mockReturnValue(true)
 
     Object.defineProperty(navigator, 'onLine', {
       configurable: true,
@@ -40,7 +44,7 @@ describe('useOfflineSync', () => {
   })
 
   it('deduplicates sync requests while a flush is in flight', async () => {
-    let resolveFlush!: (value: { synced: number; remaining: number }) => void
+    let resolveFlush!: (value: { synced: number; remaining: number; mode: 'cloud' | 'local-only' }) => void
     flushOfflineQueue.mockReturnValue(
       new Promise((resolve) => {
         resolveFlush = resolve
@@ -61,7 +65,7 @@ describe('useOfflineSync', () => {
     expect(result.current.isSyncing).toBe(true)
 
     act(() => {
-      resolveFlush({ synced: 1, remaining: 0 })
+      resolveFlush({ synced: 1, remaining: 0, mode: 'cloud' })
     })
 
     await waitFor(() => {

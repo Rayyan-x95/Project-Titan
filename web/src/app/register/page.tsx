@@ -1,12 +1,54 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useTitan } from '../../state/titan-context'
+import { registerLocalAccount } from '../../services/local-auth'
+import { useTitanActions } from '../../state/useTitan'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const registerApiEndpoint = import.meta.env.VITE_AUTH_REGISTER_API_URL?.trim()
+
+async function registerRemoteAccount(input: {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+}) {
+  if (!registerApiEndpoint) {
+    return null
+  }
+
+  const response = await fetch(registerApiEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  })
+
+  if (!response.ok) {
+    return null
+  }
+
+  const contentType = response.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    return null
+  }
+
+  const payload = (await response.json()) as {
+    user?: {
+      name?: string
+    }
+    displayName?: string
+  }
+
+  const fallbackName = `${input.firstName} ${input.lastName}`.trim() || input.email.split('@')[0] || input.email
+  return {
+    displayName: payload.user?.name?.trim() || payload.displayName?.trim() || fallbackName,
+  }
+}
 
 export default function RegistrationPage() {
   const navigate = useNavigate()
-  const { addNotification, setCurrentUser } = useTitan()
+  const { addNotification, setCurrentUser } = useTitanActions()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -15,7 +57,7 @@ export default function RegistrationPage() {
     confirmPassword: '',
   })
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
 
     const email = formData.email.trim()
@@ -35,10 +77,56 @@ export default function RegistrationPage() {
       return
     }
 
+    if (!formData.password.trim()) {
+      addNotification('Missing password', 'Please create a password for your account.', 'warning')
+      return
+    }
+
     const fullName = `${formData.firstName} ${formData.lastName}`.trim() || email.split('@')[0]
-    setCurrentUser(fullName)
-    addNotification('Account ready', `Profile created for ${fullName}.`, 'success', '/')
-    navigate('/')
+
+    try {
+      const remoteAccount = await registerRemoteAccount({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email,
+        password: formData.password,
+      })
+
+      if (remoteAccount) {
+        setCurrentUser(remoteAccount.displayName)
+        addNotification('Account created', `Welcome, ${remoteAccount.displayName}.`, 'success', '/')
+        navigate('/')
+        return
+      }
+
+      const localAccount = await registerLocalAccount({
+        email,
+        password: formData.password,
+        displayName: fullName,
+      })
+
+      if (!localAccount.ok) {
+        addNotification(
+          'Account already exists',
+          'A local account with this email already exists. Please sign in instead.',
+          'warning',
+          '/login',
+        )
+        navigate('/login')
+        return
+      }
+
+      setCurrentUser(localAccount.displayName)
+      addNotification(
+        'Local account created',
+        `Profile created for ${localAccount.displayName}. Cloud auth is not configured in this deployment.`,
+        'info',
+        '/',
+      )
+      navigate('/')
+    } catch {
+      addNotification('Registration failed', 'Unable to create an account right now.', 'warning')
+    }
   }
 
   return (

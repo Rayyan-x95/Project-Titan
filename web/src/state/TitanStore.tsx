@@ -3,7 +3,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
-  useRef,
+  useState,
   type ReactNode,
 } from 'react'
 import { emptyState } from '../data/emptyState'
@@ -28,6 +28,7 @@ import {
   type AddSplitInput,
   TitanActionsContext,
   TitanCurrentUserContext,
+  TitanHydrationContext,
   TitanStateContext,
   type TitanActions,
 } from './titan-context'
@@ -727,7 +728,7 @@ function reducer(state: TitanState, action: Action): TitanState {
 
 export function TitanProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, getInitialState)
-  const hasHydratedRef = useRef(false)
+  const [hasHydrated, setHasHydrated] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -739,7 +740,7 @@ export function TitanProvider({ children }: { children: ReactNode }) {
           return
         }
 
-        hasHydratedRef.current = true
+        setHasHydrated(true)
         if (!persistedState) {
           return
         }
@@ -750,7 +751,7 @@ export function TitanProvider({ children }: { children: ReactNode }) {
         })
       })
       .catch((err) => {
-        hasHydratedRef.current = true
+        setHasHydrated(true)
         console.warn('Failed to hydrate state from storage:', err)
       })
 
@@ -770,19 +771,19 @@ export function TitanProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (!hasHydratedRef.current) {
+    if (!hasHydrated) {
       return
     }
 
     void titanBackend.saveState(state).catch((err) => {
       console.warn('Failed to save Titan state:', err)
     })
-  }, [state])
+  }, [hasHydrated, state])
 
   const trackedSpendRupees = getCurrentMonthTrackedSpendRupees(state)
 
   useEffect(() => {
-    if (!hasHydratedRef.current || state.budget.monthlyLimitRupees <= 0) {
+    if (!hasHydrated || state.budget.monthlyLimitRupees <= 0) {
       return
     }
 
@@ -840,6 +841,7 @@ export function TitanProvider({ children }: { children: ReactNode }) {
       }
     })
   }, [
+    hasHydrated,
     trackedSpendRupees,
     state.budget.lastAlertKey,
     state.budget.monthlyLimitRupees,
@@ -1080,9 +1082,11 @@ export function TitanProvider({ children }: { children: ReactNode }) {
 
   return (
     <TitanStateContext.Provider value={state}>
-      <TitanCurrentUserContext.Provider value={state.currentUser}>
-        <TitanActionsContext.Provider value={actions}>{children}</TitanActionsContext.Provider>
-      </TitanCurrentUserContext.Provider>
+      <TitanHydrationContext.Provider value={hasHydrated}>
+        <TitanCurrentUserContext.Provider value={state.currentUser}>
+          <TitanActionsContext.Provider value={actions}>{children}</TitanActionsContext.Provider>
+        </TitanCurrentUserContext.Provider>
+      </TitanHydrationContext.Provider>
     </TitanStateContext.Provider>
   )
 }
