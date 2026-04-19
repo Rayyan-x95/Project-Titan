@@ -1,11 +1,12 @@
 # Dependencies
 node_modules/
+web/node_modules/
 
 # Build artifacts
-dist/
-dist-ssr/
-.vite/
-coverage/
+web/dist/
+web/dist-ssr/
+web/.vite/
+web/coverage/
 
 # TypeScript
 *.tsbuildinfo
@@ -14,7 +15,9 @@ coverage/
 .env
 .env.*
 !.env.example
-*.local
+web/.env
+web/.env.*
+!web/.env.example
 
 # Logs
 logs/
@@ -36,4 +39,8 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary files
+*.tmp
+*.temp
 *.backup
