@@ -4,6 +4,15 @@ function toSvgDataUrl(svg: string) {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
 }
 
+export function escapeXml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;')
+}
+
 export function buildQrImageUrl(value: string, size = 280) {
   const qrValue = value.trim() || 'https://titanapp.qzz.io/'
   const qr = qrcode(0, 'M')
@@ -40,7 +49,7 @@ export function buildQrImageUrl(value: string, size = 280) {
       <rect x="${offset - 8}" y="${offset - 8}" width="${renderedSize + 16}" height="${renderedSize + 16}" rx="16" fill="#ffffff" />
       ${cells.join('')}
       <text x="50%" y="${size + 28}" text-anchor="middle" fill="#edf3ff" font-family="system-ui, sans-serif" font-size="14" font-weight="700">Titan QR</text>
-      <text x="50%" y="${size + 46}" text-anchor="middle" fill="rgba(237,243,255,0.7)" font-family="system-ui, sans-serif" font-size="10">${qrValue.slice(0, 42)}</text>
+      <text x="50%" y="${size + 46}" text-anchor="middle" fill="rgba(237,243,255,0.7)" font-family="system-ui, sans-serif" font-size="10">${escapeXml(qrValue.slice(0, 42))}</text>
     </svg>
   `.trim()
 

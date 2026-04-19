@@ -51,7 +51,7 @@ VITE_ENABLE_DEV_AUTH=true
 ```
 
 - `VITE_GA_MEASUREMENT_ID`: Enables analytics when present
-- `VITE_ENABLE_DEV_AUTH`: Dev shortcut for local authentication (enabled by default in dev)
+- `VITE_ENABLE_DEV_AUTH`: Dev shortcut for local authentication — defaults to true in development (optional to set). Expected value format: `true`/`false`. In production, set to `false` (or leave unset).
 
 ## Directory Highlights
 

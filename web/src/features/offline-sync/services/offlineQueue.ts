@@ -62,13 +62,29 @@ export async function flushOfflineQueue(): Promise<OfflineSyncResult> {
       return { synced: 0, remaining: queue.length, mode: 'local-only' }
     }
 
-    const response = await fetch(REMOTE_SYNC_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ operations: queue }),
-    })
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => {
+      controller.abort()
+    }, 10_000)
+
+    let response: Response
+    try {
+      response = await fetch(REMOTE_SYNC_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ operations: queue }),
+        signal: controller.signal,
+      })
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new Error('Remote sync timed out')
+      }
+      throw error
+    } finally {
+      window.clearTimeout(timeout)
+    }
 
     if (!response.ok) {
       throw new Error(`Remote sync failed with status ${response.status}`)
@@ -76,7 +92,10 @@ export async function flushOfflineQueue(): Promise<OfflineSyncResult> {
 
     writeQueue([])
     return { synced: queue.length, remaining: 0, mode: 'cloud' }
-  } catch {
+  } catch (error) {
+    if (error instanceof Error) {
+      console.warn('Offline sync failed:', error.message)
+    }
     return { synced: 0, remaining: queue.length, mode: isRemoteSyncConfigured() ? 'cloud' : 'local-only' }
   }
 }

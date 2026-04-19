@@ -67,7 +67,8 @@ export default function LoginPage() {
       return
     }
 
-    if (!state.currentUser.trim()) {
+    const currentUser = typeof state.currentUser === 'string' ? state.currentUser.trim() : ''
+    if (!currentUser) {
       return
     }
 

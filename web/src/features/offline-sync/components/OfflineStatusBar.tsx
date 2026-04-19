@@ -17,7 +17,13 @@ export function OfflineStatusBar() {
     <section className="offline-status-bar" aria-live="polite">
       <span>{statusCopy}</span>
       <button className="button button-small button-secondary" onClick={() => void retrySync()} type="button">
-        {isSyncing ? 'Syncing...' : syncMode === 'local-only' ? 'Check sync config' : 'Retry sync'}
+        {isSyncing
+          ? 'Syncing...'
+          : !isOnline && syncMode === 'local-only'
+            ? 'Retry sync'
+            : syncMode === 'local-only'
+              ? 'Check sync config'
+              : 'Retry sync'}
       </button>
     </section>
   )

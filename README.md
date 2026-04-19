@@ -76,11 +76,13 @@ Create `web/.env` when needed.
 # Optional: enables Google Analytics
 VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 
-# Optional (dev): bypasses backend auth and derives username from email prefix
+# Optional: dev shortcut for local authentication (defaults to true in development)
 VITE_ENABLE_DEV_AUTH=true
 ```
 
 If `VITE_GA_MEASUREMENT_ID` is not set, analytics remains disabled.
+
+- `VITE_ENABLE_DEV_AUTH`: Dev shortcut for local authentication — defaults to true in development (optional to set). Expected value format: `true`/`false`. In production, set to `false` (or leave unset).
 
 ## Architecture Summary
 

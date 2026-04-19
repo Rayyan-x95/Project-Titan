@@ -6,6 +6,10 @@ type LocalAccount = {
 }
 
 const ACCOUNTS_KEY = 'titan-local-accounts-v1'
+const PBKDF2_ALGORITHM = 'pbkdf2'
+const PBKDF2_ITERATIONS = 210_000
+const PBKDF2_DERIVED_BITS = 256
+const PBKDF2_SALT_BYTES = 16
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase()
@@ -24,26 +28,91 @@ function writeAccounts(accounts: LocalAccount[]) {
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts))
 }
 
+function toBase64(bytes: Uint8Array) {
+  let binary = ''
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
+  }
+  return btoa(binary)
+}
+
+function fromBase64(value: string) {
+  const binary = atob(value)
+  const output = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) {
+    output[index] = binary.charCodeAt(index)
+  }
+  return output
+}
+
+async function derivePbkdf2(password: string, salt: Uint8Array, iterations: number) {
+  const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, [
+    'deriveBits',
+  ])
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      hash: 'SHA-256',
+      salt,
+      iterations,
+    },
+    keyMaterial,
+    PBKDF2_DERIVED_BITS,
+  )
+
+  return new Uint8Array(derivedBits)
+}
+
+function timingSafeEqual(a: Uint8Array, b: Uint8Array) {
+  if (a.length !== b.length) {
+    return false
+  }
+
+  let mismatch = 0
+  for (let index = 0; index < a.length; index += 1) {
+    mismatch |= a[index] ^ b[index]
+  }
+
+  return mismatch === 0
+}
+
+function parsePbkdf2Hash(value: string) {
+  const [algorithm, iterationsValue, saltBase64, hashBase64] = value.split('$')
+  if (algorithm !== PBKDF2_ALGORITHM || !iterationsValue || !saltBase64 || !hashBase64) {
+    return null
+  }
+
+  const iterations = Number.parseInt(iterationsValue, 10)
+  if (!Number.isFinite(iterations) || iterations <= 0) {
+    return null
+  }
+
+  try {
+    return {
+      iterations,
+      salt: fromBase64(saltBase64),
+      hash: fromBase64(hashBase64),
+    }
+  } catch {
+    return null
+  }
+}
+
 async function createPasswordHash(password: string) {
-  if (!password) {
-    return ''
+  const normalized = password.trim()
+  if (!normalized) {
+    throw new Error('Password is required')
   }
 
-  if (typeof crypto !== 'undefined' && crypto.subtle) {
-    const encoded = new TextEncoder().encode(password)
-    const digest = await crypto.subtle.digest('SHA-256', encoded)
-    return Array.from(new Uint8Array(digest))
-      .map((value) => value.toString(16).padStart(2, '0'))
-      .join('')
+  if (typeof crypto === 'undefined' || !crypto.subtle || !crypto.getRandomValues) {
+    throw new Error('Secure crypto is unavailable')
   }
 
-  let hash = 0
-  for (let index = 0; index < password.length; index += 1) {
-    hash = (hash << 5) - hash + password.charCodeAt(index)
-    hash |= 0
-  }
+  const salt = crypto.getRandomValues(new Uint8Array(PBKDF2_SALT_BYTES))
+  const hash = await derivePbkdf2(normalized, salt, PBKDF2_ITERATIONS)
 
-  return `fallback-${Math.abs(hash)}`
+  return `${PBKDF2_ALGORITHM}$${PBKDF2_ITERATIONS}$${toBase64(salt)}$${toBase64(hash)}`
 }
 
 export async function registerLocalAccount(input: {
@@ -55,7 +124,7 @@ export async function registerLocalAccount(input: {
   const accounts = readAccounts()
 
   if (accounts.some((account) => account.email === email)) {
-    return { ok: false as const, reason: 'exists' as const }
+    return { ok: false as const, code: 'ACCOUNT_EXISTS' as const, reason: 'exists' as const }
   }
 
   const passwordHash = await createPasswordHash(input.password)
@@ -78,8 +147,22 @@ export async function authenticateLocalAccount(emailInput: string, password: str
     return null
   }
 
-  const passwordHash = await createPasswordHash(password)
-  if (account.passwordHash !== passwordHash) {
+  const parsed = parsePbkdf2Hash(account.passwordHash)
+  if (!parsed) {
+    return null
+  }
+
+  const normalized = password.trim()
+  if (!normalized) {
+    return null
+  }
+
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    return null
+  }
+
+  const derived = await derivePbkdf2(normalized, parsed.salt, parsed.iterations)
+  if (!timingSafeEqual(derived, parsed.hash)) {
     return null
   }
 

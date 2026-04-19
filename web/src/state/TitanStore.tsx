@@ -751,6 +751,10 @@ export function TitanProvider({ children }: { children: ReactNode }) {
         })
       })
       .catch((err) => {
+        if (!active) {
+          return
+        }
+
         setHasHydrated(true)
         console.warn('Failed to hydrate state from storage:', err)
       })

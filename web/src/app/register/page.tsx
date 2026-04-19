@@ -6,14 +6,29 @@ import { useTitanActions } from '../../state/useTitan'
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const registerApiEndpoint = import.meta.env.VITE_AUTH_REGISTER_API_URL?.trim()
 
+type RegisterRemoteSuccess = {
+  ok: true
+  displayName: string
+}
+
+type RegisterRemoteFailure = {
+  ok: false
+  error: 'not_configured' | 'registration_failed'
+  status?: number
+  message?: string
+  details?: string
+}
+
+type RegisterRemoteResult = RegisterRemoteSuccess | RegisterRemoteFailure
+
 async function registerRemoteAccount(input: {
   firstName: string
   lastName: string
   email: string
   password: string
-}) {
+}): Promise<RegisterRemoteResult> {
   if (!registerApiEndpoint) {
-    return null
+    return { ok: false, error: 'not_configured' }
   }
 
   const response = await fetch(registerApiEndpoint, {
@@ -24,13 +39,43 @@ async function registerRemoteAccount(input: {
     body: JSON.stringify(input),
   })
 
+  const contentType = response.headers.get('content-type') || ''
+  const isJson = contentType.includes('application/json')
+
   if (!response.ok) {
-    return null
+    let message = 'Unable to create account with the configured registration endpoint.'
+    let details: string | undefined
+
+    if (isJson) {
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            message?: string
+            error?: string
+            details?: string
+            code?: string
+          }
+        | null
+
+      message = payload?.message?.trim() || payload?.error?.trim() || message
+      details = payload?.details?.trim() || payload?.code?.trim()
+    }
+
+    return {
+      ok: false,
+      error: 'registration_failed',
+      status: response.status,
+      message,
+      details,
+    }
   }
 
-  const contentType = response.headers.get('content-type') || ''
-  if (!contentType.includes('application/json')) {
-    return null
+  if (!isJson) {
+    return {
+      ok: false,
+      error: 'registration_failed',
+      status: response.status,
+      message: 'Registration endpoint returned an unsupported response format.',
+    }
   }
 
   const payload = (await response.json()) as {
@@ -42,6 +87,7 @@ async function registerRemoteAccount(input: {
 
   const fallbackName = `${input.firstName} ${input.lastName}`.trim() || input.email.split('@')[0] || input.email
   return {
+    ok: true,
     displayName: payload.user?.name?.trim() || payload.displayName?.trim() || fallbackName,
   }
 }
@@ -92,10 +138,21 @@ export default function RegistrationPage() {
         password: formData.password,
       })
 
-      if (remoteAccount) {
+      if (remoteAccount.ok) {
         setCurrentUser(remoteAccount.displayName)
         addNotification('Account created', `Welcome, ${remoteAccount.displayName}.`, 'success', '/')
         navigate('/')
+        return
+      }
+
+      if (remoteAccount.error !== 'not_configured') {
+        const statusMessage = remoteAccount.status ? ` (HTTP ${remoteAccount.status})` : ''
+        const detailSuffix = remoteAccount.details ? ` ${remoteAccount.details}` : ''
+        addNotification(
+          'Registration failed',
+          `${remoteAccount.message || 'Unable to create an account right now.'}${statusMessage}.${detailSuffix}`.trim(),
+          'warning',
+        )
         return
       }
 
@@ -106,13 +163,22 @@ export default function RegistrationPage() {
       })
 
       if (!localAccount.ok) {
+        if (localAccount.code === 'ACCOUNT_EXISTS' || localAccount.reason === 'exists') {
+          addNotification(
+            'Account already exists',
+            'A local account with this email already exists. Please sign in instead.',
+            'warning',
+            '/login',
+          )
+          navigate('/login')
+          return
+        }
+
         addNotification(
-          'Account already exists',
-          'A local account with this email already exists. Please sign in instead.',
+          'Registration failed',
+          `Unable to create local account${localAccount.code ? ` (${localAccount.code})` : ''}. Please try again.`,
           'warning',
-          '/login',
         )
-        navigate('/login')
         return
       }
 
