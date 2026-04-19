@@ -200,6 +200,9 @@ function ExpenseEditor({
 
     setShowSuccess(true)
 
+    if (navigateTimer.current) {
+      window.clearTimeout(navigateTimer.current)
+    }
     navigateTimer.current = window.setTimeout(() => {
       if (selectedGroup) {
         navigate(`/groups/${selectedGroup.id}`)
