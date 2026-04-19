@@ -128,19 +128,6 @@ export function SettlementPage() {
         </label>
 
         <div className="button-row">
-          <button className="button button-secondary" onClick={() => navigate(-1)} type="button">
-            Cancel
-          </button>
-          <button
-            className="button button-secondary"
-            onClick={() => {
-              settleFull(split.id, participantId)
-              navigate(-1)
-            }}
-            type="button"
-          >
-            Mark this share settled
-          </button>
           <button
             className="button button-primary"
             onClick={() => {
@@ -163,7 +150,23 @@ export function SettlementPage() {
           >
             Record partial
           </button>
-          <button className="button button-secondary" onClick={openModal} type="button">
+          <button
+            className="button button-secondary"
+            onClick={() => {
+              settleFull(split.id, participantId)
+              navigate(-1)
+            }}
+            type="button"
+          >
+            Mark this share settled
+          </button>
+        </div>
+
+        <div className="button-row">
+          <button className="button button-ghost" onClick={() => navigate(-1)} type="button">
+            Cancel
+          </button>
+          <button className="button button-ghost" onClick={openModal} type="button">
             Share as QR
           </button>
         </div>
